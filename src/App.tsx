@@ -353,6 +353,12 @@ export default function App() {
     try {
       const res = await fetch(`/api/check-guest?name=${encodeURIComponent(searchName.trim())}`);
       if (!res.ok) throw new Error("Verification failed");
+      
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Local fallback mode: static host output");
+      }
+      
       const data: GuestCheckResponse = await res.json();
       
       if (data.found && data.guestName) {
@@ -455,6 +461,11 @@ export default function App() {
       });
 
       if (!res.ok) throw new Error("RSVP failed");
+      
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Local fallback mode: static host output");
+      }
       
       // Save locally to localStorage as redundancy
       try {
