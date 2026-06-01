@@ -877,57 +877,84 @@ export default function App() {
         {/* DETAILS SECTION (Dress color palette circles, Rules, Notes) */}
         {/* ==================================================================== */}
         <section className="w-full max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white/60 backdrop-blur-lg border border-white/80 rounded-3xl p-8 shadow-[0_15px_30px_rgba(255,209,219,0.1)] flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="bg-white/60 backdrop-blur-lg border border-white/80 rounded-3xl p-8 shadow-[0_15px_30px_rgba(255,209,219,0.1)] grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
             
-            <div className="max-w-md">
-              <h3 className="text-xs uppercase tracking-[0.25em] text-[#567BA2] font-semibold mb-2">Event Etiquette</h3>
-              <h2 className="text-3xl font-script text-[#DE5B7B] tracking-wide mb-3">Dress Code Guidelines</h2>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                To capture our dream wedding's garden chic look, we request our beloved guests follow our themed color palette. Gentlemen may wear formal suits/barongs; Ladies may select pastel dresses according to our theme.
-              </p>
+            {/* Left Column: Rules & Colors */}
+            <div className="col-span-1 md:col-span-7 flex flex-col justify-center space-y-6">
+              <div>
+                <h3 className="text-xs uppercase tracking-[0.25em] text-[#567BA2] font-semibold mb-2">Event Etiquette</h3>
+                <h2 className="text-3xl font-script text-[#DE5B7B] tracking-wide mb-3">Dress Code Guidelines</h2>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  To capture our dream wedding's garden chic look, we request our beloved guests follow our themed color palette. Gentlemen may wear formal suits/barongs; Ladies may select pastel dresses according to our theme.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center gap-6 bg-white/90 p-5 rounded-2xl border border-pink-50 shadow-sm w-full">
+                
+                {/* Color Visualizers */}
+                <div className="flex gap-4">
+                  <div className="text-center group">
+                    <div 
+                      className="w-12 h-12 rounded-full border-4 border-white shadow-md transform group-hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer" 
+                      style={{ backgroundColor: WEDDING_DETAILS.palette.blue.hex }}
+                      title={WEDDING_DETAILS.palette.blue.name}
+                    >
+                    </div>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1.5 block">
+                      {WEDDING_DETAILS.palette.blue.name}
+                    </span>
+                  </div>
+
+                  <div className="text-center group">
+                    <div 
+                      className="w-12 h-12 rounded-full border-4 border-white shadow-md transform group-hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer" 
+                      style={{ backgroundColor: WEDDING_DETAILS.palette.pink.hex }}
+                      title={WEDDING_DETAILS.palette.pink.name}
+                    >
+                    </div>
+                    <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1.5 block">
+                      {WEDDING_DETAILS.palette.pink.name}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="h-0.5 sm:h-12 w-12 sm:w-0.5 bg-slate-100"></div>
+
+                <div className="text-center sm:text-left space-y-1">
+                  <div className="inline-block bg-red-50 text-[#D95B72] text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border border-red-100">
+                    {WEDDING_DETAILS.dressCode.rule}
+                  </div>
+                  <p className="text-xs text-slate-600 uppercase font-black tracking-wider block">
+                    Attire: {WEDDING_DETAILS.dressCode.attire}
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-medium">Strictly formal wear of color codes only.</p>
+                </div>
+
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6 bg-white/90 p-6 rounded-2xl border border-pink-100 shadow-sm w-full md:w-auto">
-              
-              {/* Color Visualizers */}
-              <div className="flex gap-4">
-                <div className="text-center group">
-                  <div 
-                    className="w-14 h-14 rounded-full border-4 border-white shadow-md transform group-hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer" 
-                    style={{ backgroundColor: WEDDING_DETAILS.palette.blue.hex }}
-                    title={WEDDING_DETAILS.palette.blue.name}
-                  >
-                  </div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1 block">
-                    {WEDDING_DETAILS.palette.blue.name}
-                  </span>
+            {/* Right Column: Inspiration Photo */}
+            <div className="col-span-1 md:col-span-5 w-full flex justify-center">
+              <div className="bg-white/95 p-3.5 rounded-2xl border border-pink-100 shadow-md max-w-[280px] w-full transform hover:rotate-1 hover:scale-[1.02] transition-all duration-500">
+                <div className="overflow-hidden rounded-xl bg-slate-50 border border-slate-100 aspect-[4/5] relative">
+                  <img 
+                    src="https://i.imgur.com/LeLL5Gk.png" 
+                    alt="Dress Code Inspiration" 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (!img.src.endsWith('.jpg')) {
+                        img.src = "https://i.imgur.com/LeLL5Gk.jpg";
+                      }
+                    }}
+                  />
                 </div>
-
-                <div className="text-center group">
-                  <div 
-                    className="w-14 h-14 rounded-full border-4 border-white shadow-md transform group-hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer" 
-                    style={{ backgroundColor: WEDDING_DETAILS.palette.pink.hex }}
-                    title={WEDDING_DETAILS.palette.pink.name}
-                  >
-                  </div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-1 block">
-                    {WEDDING_DETAILS.palette.pink.name}
-                  </span>
+                <div className="text-center mt-3 font-medium">
+                  <span className="font-script text-2xl text-[#DE5B7B]">Style Guide</span>
+                  <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">Recommended Attire</p>
                 </div>
               </div>
-
-              <div className="h-0.5 sm:h-12 w-12 sm:w-0.5 bg-slate-100"></div>
-
-              <div className="text-center sm:text-left space-y-1.5">
-                <div className="inline-block bg-red-50 text-[#D95B72] text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border border-red-100">
-                  {WEDDING_DETAILS.dressCode.rule}
-                </div>
-                <p className="text-xs text-slate-600 uppercase font-black tracking-wider block">
-                  Attire: {WEDDING_DETAILS.dressCode.attire}
-                </p>
-                <p className="text-[10px] text-slate-400">Strictly formal wear of color codes only.</p>
-              </div>
-
             </div>
 
           </div>
