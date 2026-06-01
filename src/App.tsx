@@ -1522,6 +1522,21 @@ export default function App() {
                     )}
                   </div>
 
+                  {/* Seat Allowance Status Card */}
+                  <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3.5 text-center space-y-1">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">
+                      Seating Allowance
+                    </span>
+                    <p className={`text-xs font-black uppercase tracking-wider inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${checkResult.allowedPlusOne ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"}`}>
+                      {checkResult.allowedPlusOne ? "✨ 2 Seats (You + 1 Plus-One Allowed)" : "🎟️ 1 Seat (Single Guest RSVP)"}
+                    </p>
+                    <p className="text-[10px] text-slate-400 leading-normal max-w-xs mx-auto">
+                      {checkResult.allowedPlusOne 
+                        ? "You are welcome to bring one companion. Check the companion box below and enter their full name."
+                        : "Due to strict venue seating limits, your slot is reserved strictly for you."}
+                    </p>
+                  </div>
+
                   {/* Decision: Attending or Not */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">

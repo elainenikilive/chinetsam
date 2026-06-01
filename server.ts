@@ -429,12 +429,41 @@ app.post("/api/rsvp", async (req, res) => {
     return res.status(400).json({ error: "Name is required for RSVP." });
   }
 
+  // Server-side check: verify if the guest is allowed to bring a plus-one
+  let isAllowedToBring = false;
+
+  // 1. Check offline guest database first
+  const offlineGuests = getOfflineGuests();
+  const matchedOffline = offlineGuests.find(g => matchNames(name, g.name));
+  if (matchedOffline) {
+    isAllowedToBring = matchedOffline.allowedPlusOne;
+  } else {
+    // 2. Query Google Sheet dynamically to check if we can verify their allowedPlusOne status
+    try {
+      const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
+      const params = new URLSearchParams({ name: name.trim() });
+      const response = await fetch(`${webAppUrl}?${params.toString()}`);
+      if (response.ok) {
+        const googleData = await response.json();
+        if (googleData && googleData.found) {
+          isAllowedToBring = !!googleData.allowedPlusOne;
+        }
+      }
+    } catch (err: any) {
+      console.warn("Apps Script allowedPlusOne lookup check failed during submit:", err.message);
+    }
+  }
+
+  // Enforce the seating policy
+  const finalWithPlusOne = isAllowedToBring ? (!!withPlusOne) : false;
+  const finalPlusOneName = finalWithPlusOne ? (plusOneName || "") : "";
+
   const now = new Date().toISOString();
   const updatedRSVP = {
     name,
     attending: attending === true || attending === "Yes",
-    withPlusOne: !!withPlusOne,
-    plusOneName: withPlusOne ? plusOneName || "" : "",
+    withPlusOne: finalWithPlusOne,
+    plusOneName: finalPlusOneName,
     submittedAt: now,
   };
 
@@ -459,16 +488,16 @@ app.post("/api/rsvp", async (req, res) => {
     const payload = {
       name: name,
       attending: (attending === true || attending === "Yes") ? "Yes" : "No",
-      plusOneName: withPlusOne ? (plusOneName || "") : "",
-      allowedPlusOne: withPlusOne ? "Yes" : "No",
+      plusOneName: finalWithPlusOne ? (finalPlusOneName || "") : "",
+      allowedPlusOne: finalWithPlusOne ? "Yes" : "No",
       timestamp: now
     };
 
     const urlParams = new URLSearchParams({
       name: name,
       attending: (attending === true || attending === "Yes") ? "Yes" : "No",
-      plusOneName: withPlusOne ? (plusOneName || "") : "",
-      allowedPlusOne: withPlusOne ? "Yes" : "No",
+      plusOneName: finalWithPlusOne ? (finalPlusOneName || "") : "",
+      allowedPlusOne: finalWithPlusOne ? "Yes" : "No",
       timestamp: now
     });
 
