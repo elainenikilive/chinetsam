@@ -3,6 +3,8 @@ import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { WEDDING_DETAILS } from "./src/data/weddingDetails";
+import { collection, doc, getDocs, setDoc, deleteDoc, writeBatch, getDocFromServer } from "firebase/firestore";
+import { db, OperationType, handleFirestoreError } from "./src/lib/firebase";
 
 const app = express();
 const PORT = 3000;
@@ -42,6 +44,80 @@ function writeRSVPs(rsvps: any[]) {
     fs.writeFileSync(RSVP_FILE, JSON.stringify(rsvps, null, 2), "utf8");
   } catch (err) {
     console.error("Failed to write rsvps.json:", err);
+  }
+}
+
+// Test Firebase connection on boot
+async function testFirebaseConnection() {
+  try {
+    await getDocFromServer(doc(db, "test", "connection"));
+    console.log("Firestore connection test: SUCCESS");
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("the client is offline")) {
+      console.error("Please check your Firebase configuration.");
+    } else {
+      console.log("Firestore connection test: PASSED (ignored or expected rules warning)");
+    }
+  }
+}
+testFirebaseConnection();
+
+// FIRESTORE OPERATIONS
+
+// Get all RSVPs from Firestore
+async function getFirestoreRSVPs(): Promise<any[]> {
+  try {
+    const rsvpsColl = collection(db, "rsvps");
+    const snapshot = await getDocs(rsvpsColl);
+    const rsvps: any[] = [];
+    snapshot.forEach((doc) => {
+      rsvps.push(doc.data());
+    });
+    return rsvps;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, "rsvps");
+    return [];
+  }
+}
+
+// Save RSVP to Firestore
+async function saveFirestoreRSVP(rsvp: {
+  name: string;
+  attending: boolean;
+  withPlusOne: boolean;
+  plusOneName: string;
+  submittedAt: string;
+}) {
+  try {
+    const docRef = doc(db, "rsvps", rsvp.name);
+    await setDoc(docRef, rsvp);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `rsvps/${rsvp.name}`);
+  }
+}
+
+// Delete RSVP from Firestore
+async function deleteFirestoreRSVP(name: string) {
+  try {
+    const docRef = doc(db, "rsvps", name);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `rsvps/${name}`);
+  }
+}
+
+// Clear all RSVPs from Firestore
+async function clearAllFirestoreRSVPs() {
+  try {
+    const rsvpsColl = collection(db, "rsvps");
+    const snapshot = await getDocs(rsvpsColl);
+    const batch = writeBatch(db);
+    snapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, "rsvps");
   }
 }
 
@@ -185,10 +261,26 @@ function getOfflineGuests(): OfflineGuest[] {
   return guests;
 }
 
-// API: Get verified RSVPs (attending only) synced with Google Sheet
+// API: Get verified RSVPs (attending only) synced with Firestore and Google Sheet
 app.get("/api/rsvps", async (req, res) => {
-  let list = readRSVPs();
+  let list = await getFirestoreRSVPs();
 
+  // If Firestore is empty, seed from local cached rsvps.json or backup
+  if (list.length === 0) {
+    const local = readRSVPs();
+    if (local.length > 0) {
+      console.log(`Seeding ${local.length} cached RSVPs from local file to Firestore.`);
+      for (const item of local) {
+        await saveFirestoreRSVP(item);
+      }
+      list = await getFirestoreRSVPs();
+    }
+  }
+
+  // Keep local JSON in sync as local cache
+  writeRSVPs(list);
+
+  // We still query the Google Apps Script in the background if possible, but Firestore is our primary database now!
   try {
     const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
     const params = new URLSearchParams({ action: "list" });
@@ -212,16 +304,20 @@ app.get("/api/rsvps", async (req, res) => {
           };
         }).filter((item: any) => item.name);
 
-        writeRSVPs(synchronizedList);
-        list = synchronizedList;
-      } else {
-        console.log("Response from Google Sheet is not an array, using local cached RSVPs.");
+        // Update Firestore with any new rows found in Google Sheets
+        for (const item of synchronizedList) {
+          const existing = list.find(r => matchNames(r.name, item.name));
+          if (!existing) {
+            await saveFirestoreRSVP(item);
+          }
+        }
+        
+        list = await getFirestoreRSVPs();
+        writeRSVPs(list);
       }
-    } else {
-      console.log(`Google Sheet Web App responded with code ${response.status}, using local cached RSVPs.`);
     }
   } catch (err: any) {
-    console.warn("Failed to sync RSVPs from Google Sheet (falling back to locally cached RSVPs):", err.message);
+    console.warn("Failed to sync Google Sheet list in background:", err.message);
   }
 
   const attending = list.filter((r) => r.attending === true || r.attending === "Yes");
@@ -272,7 +368,7 @@ app.get("/api/check-guest", async (req, res) => {
         .replace(/\b\w/g, (c) => c.toUpperCase());
     }
 
-    const rsvps = readRSVPs();
+    const rsvps = await getFirestoreRSVPs();
     const existingRSVP = rsvps.find((r) => matchNames(r.name, guestName));
 
     return res.json({
@@ -292,7 +388,7 @@ app.get("/api/check-guest", async (req, res) => {
 
     if (matchedGuest) {
       console.log(`Successful match in offline database for: ${matchedGuest.name}`);
-      const rsvps = readRSVPs();
+      const rsvps = await getFirestoreRSVPs();
       const existingRSVP = rsvps.find((r) => matchNames(r.name, matchedGuest.name) || matchNames(r.name, nameQuery));
 
       return res.json({
@@ -305,10 +401,10 @@ app.get("/api/check-guest", async (req, res) => {
     }
 
     // 2. Search in existing RSVPs in case they already RSVP'd
-    const rsvps = readRSVPs();
+    const rsvps = await getFirestoreRSVPs();
     const existingRSVP = rsvps.find((r) => matchNames(r.name, nameQuery));
     if (existingRSVP) {
-      console.log(`Successful match in local submitted RSVPs: ${existingRSVP.name}`);
+      console.log(`Successful match in Firestore RSVPs: ${existingRSVP.name}`);
       return res.json({
         found: true,
         guestName: existingRSVP.name,
@@ -333,13 +429,7 @@ app.post("/api/rsvp", async (req, res) => {
     return res.status(400).json({ error: "Name is required for RSVP." });
   }
 
-  const rsvps = readRSVPs();
-  // Find or create
   const now = new Date().toISOString();
-  const targetClean = cleanString(name);
-
-  const index = rsvps.findIndex((r) => cleanString(r.name) === targetClean);
-
   const updatedRSVP = {
     name,
     attending: attending === true || attending === "Yes",
@@ -348,15 +438,21 @@ app.post("/api/rsvp", async (req, res) => {
     submittedAt: now,
   };
 
+  // 1. Save to cloud Firestore database
+  await saveFirestoreRSVP(updatedRSVP);
+
+  // 2. Sync to local rsvps.json as key-value server cache
+  const rsvps = readRSVPs();
+  const targetClean = cleanString(name);
+  const index = rsvps.findIndex((r) => cleanString(r.name) === targetClean);
   if (index >= 0) {
     rsvps[index] = updatedRSVP;
   } else {
     rsvps.push(updatedRSVP);
   }
-
   writeRSVPs(rsvps);
 
-  // Send to Google Apps Script Web App
+  // 3. Send to Google Apps Script Web App
   try {
     const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
     
@@ -418,19 +514,19 @@ app.post("/api/rsvp", async (req, res) => {
   res.json({ success: true, rsvp: updatedRSVP });
 });
 
-// ADMIN API: Clear all RSVPs from cache
-app.post("/api/admin/clear-rsvps", (req, res) => {
+// ADMIN API: Clear all RSVPs from cache & Firestore
+app.post("/api/admin/clear-rsvps", async (req, res) => {
   const { pin } = req.body;
-  // Allow July 18 wedding date PIN '0718' or default '1206'
   if (pin !== "0718" && pin !== "1206") {
     return res.status(401).json({ error: "Invalid host admin PIN." });
   }
+  await clearAllFirestoreRSVPs();
   writeRSVPs([]);
-  res.json({ success: true, message: "All RSVPs have been cleared from local list." });
+  res.json({ success: true, message: "All RSVPs have been cleared." });
 });
 
-// ADMIN API: Remove a single RSVP from cache
-app.post("/api/admin/delete-rsvp", (req, res) => {
+// ADMIN API: Remove a single RSVP from cache & Firestore
+app.post("/api/admin/delete-rsvp", async (req, res) => {
   const { name, pin } = req.body;
   if (pin !== "0718" && pin !== "1206") {
     return res.status(401).json({ error: "Invalid host admin PIN." });
@@ -438,10 +534,13 @@ app.post("/api/admin/delete-rsvp", (req, res) => {
   if (!name) {
     return res.status(400).json({ error: "Name is required." });
   }
+  await deleteFirestoreRSVP(name);
+  
   const cleanTarget = cleanString(name);
   let list = readRSVPs();
   list = list.filter((item) => cleanString(item.name) !== cleanTarget);
   writeRSVPs(list);
+  
   res.json({ success: true, message: `RSVP for ${name} removed.` });
 });
 

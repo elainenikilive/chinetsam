@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "Rsvp": {
+      "title": "Rsvp",
+      "description": "Guest RSVP and attendance confirmation",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The guest's full name"
+        },
+        "attending": {
+          "type": "boolean",
+          "description": "Whether the guest is attending"
+        },
+        "withPlusOne": {
+          "type": "boolean",
+          "description": "Whether the guest is bringing a plus one"
+        },
+        "plusOneName": {
+          "type": "string",
+          "description": "Name of the plus one companion"
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when RSVP was submitted"
+        }
+      },
+      "required": ["name", "attending", "withPlusOne", "plusOneName", "submittedAt"]
+    }
+  },
+  "firestore": {
+    "/rsvps/{rsvpId}": {
+      "schema": "Rsvp",
+      "description": "Collection of guest RSVPs"
+    }
+  }
+}
