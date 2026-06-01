@@ -391,10 +391,11 @@ app.get("/api/check-guest", async (req, res) => {
     const matchedOffline = offlineGuests.find(g => matchNames(guestName, g.name) || matchNames(nameQuery, g.name));
     const offlineAllowed = matchedOffline ? matchedOffline.allowedPlusOne : false;
 
+    const sheetsAllowed = googleData.allowedPlusOne === true || googleData.allowedPlusOne === "Yes" || googleData.allowedPlusOne === "yes";
     return res.json({
       found: true,
       guestName,
-      allowedPlusOne: !!googleData.allowedPlusOne || offlineAllowed,
+      allowedPlusOne: sheetsAllowed || offlineAllowed,
       alreadySubmitted: !!existingRSVP,
       existingRSVP: existingRSVP || null,
     });
@@ -466,7 +467,7 @@ app.post("/api/rsvp", async (req, res) => {
       if (response.ok) {
         const googleData = await response.json();
         if (googleData && googleData.found) {
-          isAllowedToBring = !!googleData.allowedPlusOne;
+          isAllowedToBring = googleData.allowedPlusOne === true || googleData.allowedPlusOne === "Yes" || googleData.allowedPlusOne === "yes";
         }
       }
     } catch (err: any) {
