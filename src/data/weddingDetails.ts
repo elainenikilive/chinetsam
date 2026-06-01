@@ -109,7 +109,7 @@ export const WEDDING_DETAILS = {
   specialSponsors: {
     cord: ["MARRIETONIE CASAS", "RICH JOHN CASAS"],
     veil: ["JUDYBELLE GUILLEMER", "MARC ANTHONY GUILLEMER"],
-    candle: ["MARIE GUILLEMER", "JOSH"]
+    candle: ["DYNAH MARIE GUILLEMER", "JOSHUA SECILLANO"]
   },
 
   bearers: {
