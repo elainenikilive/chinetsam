@@ -223,17 +223,48 @@ export default function App() {
     try {
       const res = await fetch("/api/rsvps");
       if (res.ok) {
-        const data = await res.json();
-        setAttendingGuests(data);
-      } else {
-        throw new Error("Unable to fetch registry from server");
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await res.json();
+          setAttendingGuests(data);
+          return;
+        }
       }
+      throw new Error("Unable to fetch JSON from server");
     } catch (err) {
-      console.warn("Failed to load attending list from server, checking local storage:", err);
+      console.warn("Failed to load attending list from server, trying direct Google Sheet fetch:", err);
+      try {
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
+        const resDirect = await fetch(`${webAppUrl}?action=list`);
+        if (resDirect.ok) {
+          const data = await resDirect.json();
+          if (Array.isArray(data)) {
+            const mappedList = data.map((item: any) => {
+              const name = item.name || item.Name || "";
+              const attending = item.attending === true || item.attending === "Yes" || item.Attending === "Yes" || item.Attending === true;
+              const withPlusOne = item.withPlusOne === true || item.withPlusOne === "Yes" || item.allowedPlusOne === "Yes" || item.allowedPlusOne === true || !!(item.plusOneName || item.PlusOneName);
+              const plusOneName = item.plusOneName || item.PlusOneName || "";
+              const submittedAt = item.submittedAt || item.timestamp || item.Timestamp || new Date().toISOString();
+              return {
+                name,
+                attending,
+                withPlusOne,
+                plusOneName,
+                submittedAt
+              };
+            }).filter((item: any) => item.name && item.attending);
+            setAttendingGuests(mappedList);
+            return;
+          }
+        }
+      } catch (sheetsErr) {
+        console.error("Direct Google Sheets fetch failed too:", sheetsErr);
+      }
+
       try {
         const localRSVPsRaw = localStorage.getItem("wedding_rsvps") || "[]";
         const localRSVPs: RSVPData[] = JSON.parse(localRSVPsRaw);
-        setAttendingGuests(localRSVPs);
+        setAttendingGuests(localRSVPs.filter(r => r.attending));
       } catch (storageErr) {
         console.error("Failed to read from local storage:", storageErr);
       }
@@ -378,8 +409,56 @@ export default function App() {
         throw new Error("Guest not found on server list");
       }
     } catch (err) {
-      console.warn("Server-side check failed or not found, running local guest database fallback...", err);
+      console.warn("Server-side check failed or not found, attempting direct Google Sheet lookup...", err);
       
+      try {
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
+        const params = new URLSearchParams({ name: searchName.trim() });
+        const resDirect = await fetch(`${webAppUrl}?${params.toString()}`);
+        if (resDirect.ok) {
+          const googleData = await resDirect.json();
+          if (googleData && googleData.found) {
+            let guestName = searchName.trim();
+            if (googleData.message && googleData.message.includes(" is on the list")) {
+              const parts = googleData.message.split(" is on the list");
+              if (parts[0] && parts[0].trim()) {
+                guestName = parts[0].trim();
+              }
+            }
+            if (guestName === guestName.toLowerCase() || guestName === guestName.toUpperCase()) {
+              guestName = guestName
+                .toLowerCase()
+                .replace(/\b\w/g, (c) => c.toUpperCase());
+            }
+
+            const matchedInExisting = attendingGuests.find(r => matchNamesLocal(r.name, guestName) || matchNamesLocal(r.name, searchName.trim()));
+
+            const data: GuestCheckResponse = {
+              found: true,
+              guestName,
+              allowedPlusOne: !!googleData.allowedPlusOne,
+              alreadySubmitted: !!matchedInExisting,
+              existingRSVP: matchedInExisting || null
+            };
+
+            setCheckResult(data);
+            if (matchedInExisting) {
+              setAttendingResponse(matchedInExisting.attending);
+              setWithPlusOne(matchedInExisting.withPlusOne);
+              setPlusOneName(matchedInExisting.plusOneName || "");
+            } else {
+              setAttendingResponse(true);
+              setWithPlusOne(false);
+              setPlusOneName("");
+            }
+            return;
+          }
+        }
+      } catch (sheetsErr) {
+        console.warn("Direct Google Sheet lookup failed:", sheetsErr);
+      }
+
+      console.log("Proceeding to local list match fallback...");
       const nameQuery = searchName.trim();
       const offlineGuests = getOfflineGuestsLocal();
       const matchedGuest = offlineGuests.find(g => matchNamesLocal(nameQuery, g.name));
@@ -482,8 +561,41 @@ export default function App() {
       setSubmittedRSVPPresence(true);
       fetchAttendingGuests(); // Refresh live RSVPs of those saying yes
     } catch (err) {
-      console.warn("Server save RSVP failed, utilizing local container redundancy fallback...", err);
+      console.warn("Server save RSVP failed, attempting direct Google Sheet API submit:", err);
       
+      try {
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
+        const now = new Date().toISOString();
+        const urlParams = new URLSearchParams({
+          name: rsvpObj.name,
+          attending: rsvpObj.attending ? "Yes" : "No",
+          plusOneName: rsvpObj.withPlusOne ? rsvpObj.plusOneName : "",
+          allowedPlusOne: rsvpObj.withPlusOne ? "Yes" : "No",
+          timestamp: now
+        });
+        
+        const resDirect = await fetch(`${webAppUrl}?${urlParams.toString()}`);
+        if (!resDirect.ok) throw new Error("Direct webapp submission failed");
+        
+        // Save locally to localStorage in addition
+        try {
+          const localRSVPsRaw = localStorage.getItem("wedding_rsvps") || "[]";
+          const localRSVPs: RSVPData[] = JSON.parse(localRSVPsRaw);
+          const cleanTarget = cleanStringLocal(rsvpObj.name);
+          const filtered = localRSVPs.filter(r => cleanStringLocal(r.name) !== cleanTarget);
+          filtered.push({ ...rsvpObj, submittedAt: now });
+          localStorage.setItem("wedding_rsvps", JSON.stringify(filtered, null, 2));
+        } catch (lErr) {
+          console.warn("Storage write warning:", lErr);
+        }
+
+        setSubmittedRSVPPresence(true);
+        fetchAttendingGuests(); // Reload to refresh list
+        return;
+      } catch (directErr) {
+        console.error("Direct sheet RSVP save failed too:", directErr);
+      }
+
       const now = new Date().toISOString();
       const fallbackRSVP: RSVPData = {
         name: rsvpObj.name,
