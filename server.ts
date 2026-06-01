@@ -74,8 +74,8 @@ async function getFirestoreRSVPs(): Promise<any[]> {
       rsvps.push(doc.data());
     });
     return rsvps;
-  } catch (error) {
-    handleFirestoreError(error, OperationType.LIST, "rsvps");
+  } catch (error: any) {
+    console.warn("getFirestoreRSVPs failed (using offline cached file):", error?.message || error);
     return [];
   }
 }
@@ -91,8 +91,8 @@ async function saveFirestoreRSVP(rsvp: {
   try {
     const docRef = doc(db, "rsvps", rsvp.name);
     await setDoc(docRef, rsvp);
-  } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, `rsvps/${rsvp.name}`);
+  } catch (error: any) {
+    console.warn(`saveFirestoreRSVP failed for ${rsvp.name}:`, error?.message || error);
   }
 }
 
@@ -101,8 +101,8 @@ async function deleteFirestoreRSVP(name: string) {
   try {
     const docRef = doc(db, "rsvps", name);
     await deleteDoc(docRef);
-  } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, `rsvps/${name}`);
+  } catch (error: any) {
+    console.warn(`deleteFirestoreRSVP failed for ${name}:`, error?.message || error);
   }
 }
 
@@ -116,8 +116,8 @@ async function clearAllFirestoreRSVPs() {
       batch.delete(doc.ref);
     });
     await batch.commit();
-  } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, "rsvps");
+  } catch (error: any) {
+    console.warn("clearAllFirestoreRSVPs failed:", error?.message || error);
   }
 }
 
@@ -261,6 +261,21 @@ function getOfflineGuests(): OfflineGuest[] {
   return guests;
 }
 
+// API: Serve client-side Firebase configuration properties
+app.get("/api/firebase-config", (req, res) => {
+  try {
+    const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+      res.json(config);
+    } else {
+      res.status(404).json({ error: "Firebase config not found" });
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API: Get verified RSVPs (attending only) synced with Firestore and Google Sheet
 app.get("/api/rsvps", async (req, res) => {
   let list = await getFirestoreRSVPs();
@@ -371,10 +386,15 @@ app.get("/api/check-guest", async (req, res) => {
     const rsvps = await getFirestoreRSVPs();
     const existingRSVP = rsvps.find((r) => matchNames(r.name, guestName));
 
+    // Fallback: check offline registry too to double-verify plus-one eligibility
+    const offlineGuests = getOfflineGuests();
+    const matchedOffline = offlineGuests.find(g => matchNames(guestName, g.name) || matchNames(nameQuery, g.name));
+    const offlineAllowed = matchedOffline ? matchedOffline.allowedPlusOne : false;
+
     return res.json({
       found: true,
       guestName,
-      allowedPlusOne: !!googleData.allowedPlusOne,
+      allowedPlusOne: !!googleData.allowedPlusOne || offlineAllowed,
       alreadySubmitted: !!existingRSVP,
       existingRSVP: existingRSVP || null,
     });

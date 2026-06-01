@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { 
   Heart, 
   Calendar, 
@@ -144,6 +146,32 @@ function getOfflineGuestsLocal(): OfflineGuestLocal[] {
 }
 
 export default function App() {
+  const [firestoreDb, setFirestoreDb] = useState<any>(null);
+
+  useEffect(() => {
+    const setupFirebase = async () => {
+      try {
+        const res = await fetch("/api/firebase-config");
+        if (res.ok) {
+          const config = await res.json();
+          const firebaseApp = initializeApp(config);
+          const dbInstance = getFirestore(firebaseApp);
+          setFirestoreDb(dbInstance);
+          console.log("Client-side Firebase successfully initialized!");
+        }
+      } catch (err) {
+        console.error("Failed to initialize client-side Firebase:", err);
+      }
+    };
+    setupFirebase();
+  }, []);
+
+  useEffect(() => {
+    if (firestoreDb) {
+      fetchAttendingGuests();
+    }
+  }, [firestoreDb]);
+
   // Navigation & Envelope State
   const [isOpen, setIsOpen] = useState(false);
   const [isEnvelopePopped, setIsEnvelopePopped] = useState(false);
@@ -221,6 +249,33 @@ export default function App() {
 
   const fetchAttendingGuests = async () => {
     try {
+      if (firestoreDb) {
+        try {
+          const rsvpsColl = collection(firestoreDb, "rsvps");
+          const snapshot = await getDocs(rsvpsColl);
+          const rsvpsList: RSVPData[] = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data() as any;
+            rsvpsList.push({
+              name: data.name || docSnap.id,
+              attending: data.attending === true || data.attending === "Yes",
+              withPlusOne: data.withPlusOne === true || data.withPlusOne === "Yes",
+              plusOneName: data.plusOneName || "",
+              submittedAt: data.submittedAt || new Date().toISOString()
+            });
+          });
+          const attendingOnly = rsvpsList.filter(r => r.attending);
+          if (attendingOnly.length > 0) {
+            console.log("Successfully fetched RSVPs directly from client Firestore:", attendingOnly);
+            setAttendingGuests(attendingOnly);
+            setIsLoadingGuests(false);
+            return;
+          }
+        } catch (dbErr) {
+          console.warn("Direct client firestore fetch failed, falling back to server API...", dbErr);
+        }
+      }
+
       const res = await fetch("/api/rsvps");
       if (res.ok) {
         const contentType = res.headers.get("content-type");
@@ -531,6 +586,20 @@ export default function App() {
       withPlusOne: withPlusOne,
       plusOneName: withPlusOne ? plusOneName.trim() : ""
     };
+
+    // Client-side Firestore direct save (synchronous state update on the cloud database)
+    if (firestoreDb) {
+      try {
+        const docRef = doc(firestoreDb, "rsvps", rsvpObj.name);
+        await setDoc(docRef, {
+          ...rsvpObj,
+          submittedAt: new Date().toISOString()
+        });
+        console.log("Successfully saved RSVP direct to client Firestore!");
+      } catch (dbErr) {
+        console.warn("Client-side direct Firestore save failed:", dbErr);
+      }
+    }
 
     try {
       const res = await fetch("/api/rsvp", {
