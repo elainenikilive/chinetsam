@@ -78,7 +78,7 @@ export const WEDDING_DETAILS = {
     { lady: "MARGIE GUILLEMER", gentleman: "EMELITO CONSIGNA" },
     { lady: "CECILE DUMAGAN", gentleman: "NILO LINAGA" },
     { lady: "MARY ANN NACUSPAG", gentleman: "JOSE NACUSPAG SR." },
-    { lady: "DAISY JILLO", gentleman: "HENRITO CONSIGNA" },
+    { lady: "DAISY GILLO", gentleman: "HENRITO CONSIGNA" },
     { lady: "AMELIA FLORES", gentleman: "ESLIE FLORES" },
     { lady: "LEIZEL VIRTUDAZO", gentleman: "LEO MORA" },
     { lady: "LEAH MANASAN", gentleman: "FRATERNO CATURLA" },
@@ -88,7 +88,7 @@ export const WEDDING_DETAILS = {
   bridesmaidsGroomsmen: [
     { brideSide: "ALTHEA JEAN NACUSPAG", groomSide: "RAID KNLY TUGAY" },
     { brideSide: "RHEALYN CAGMAT", groomSide: "RUBEN AL TUGAY" },
-    { brideSide: "KEZHIA NICOLE BAYNOSA", groomSide: "IVAN GERALDINO" },
+    { brideSide: "KEZAHIA NICOLE BAYNOSA", groomSide: "IVAN GERALDINO" },
     { brideSide: "MYLA ELLA BAYNOSA", groomSide: "JAZNIL JAZON" },
     { brideSide: "CHLOE JAMAINE TUGAY", groomSide: "JHON FRANCIS EMFIMO" },
     { brideSide: "CARESS ALPHA MAE PEGORO", groomSide: "REYMARK JAMISOLA" },
@@ -108,20 +108,20 @@ export const WEDDING_DETAILS = {
 
   specialSponsors: {
     cord: ["MARRIETONIE CASAS", "RICH JOHN CASAS"],
-    veil: ["JUDYBEELE GUILLEMEDYNAH", "MARC ANTHONY GUILLEMER"],
+    veil: ["JUDYBELLE GUILLEMER", "MARC ANTHONY GUILLEMER"],
     candle: ["MARIE GUILLEMER", "JOSH"]
   },
 
   bearers: {
     ring: "JERELAND NACUSPAG",
     coin: "NASH KENZO CASAS",
-    bible: "JOHN CHRISTOEF NACUSPAG",
+    bible: "JOHN CHRISTOFF NACUSPAG",
     littleBride: "ANAYAH LOIS ESPEJON",
     littleGroom: "LUCAS GIGAYON"
   },
 
   flowerGirls: [
-    "ZIA KAYE NERVAR",
+    "ZIA KATE NERVAR",
     "CASSY JAPAY",
     "SOFIA JAPAY",
     "FREYA GUILLEMER",
