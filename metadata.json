@@ -1,0 +1,6 @@
+{
+  "name": "Wedding Invitation",
+  "description": "Powder blue and baby pink garden chic themed wedding invitation for Jhon Chineth & Sam Ashly, with interactive RSVP, Google Sheet guest verification, and countdown timer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
