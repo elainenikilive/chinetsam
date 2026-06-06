@@ -277,66 +277,118 @@ app.get("/api/firebase-config", (req, res) => {
 });
 
 // API: Get verified RSVPs (attending only) synced with Firestore and Google Sheet
-app.get("/api/rsvps", async (req, res) => {
-  let list = await getFirestoreRSVPs();
+const GOOGLE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtcoxDTCAB2q8SczwA73ugqocfyRVAJ5cUO3wQ6F6xRZqepBR8oAKLnFasJ5bBvwzj9fNpP82Ga3ar/pub?gid=0&single=true&output=csv";
 
-  // If Firestore is empty, seed from local cached rsvps.json or backup
-  if (list.length === 0) {
-    const local = readRSVPs();
-    if (local.length > 0) {
-      console.log(`Seeding ${local.length} cached RSVPs from local file to Firestore.`);
-      for (const item of local) {
-        await saveFirestoreRSVP(item);
-      }
-      list = await getFirestoreRSVPs();
-    }
-  }
+interface ParsedSheetRow {
+  name: string;
+  rsvpStatus: string;
+  plusOneName: string;
+  allowedPlusOne: boolean;
+}
 
-  // Keep local JSON in sync as local cache
-  writeRSVPs(list);
-
-  // We still query the Google Apps Script in the background if possible, but Firestore is our primary database now!
+async function fetchGuestsFromGoogleSheet(): Promise<ParsedSheetRow[]> {
   try {
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
-    const params = new URLSearchParams({ action: "list" });
-    const response = await fetch(`${webAppUrl}?${params.toString()}`);
-    if (response.ok) {
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        console.log(`Synced ${data.length} RSVPs from Google Sheet.`);
-        const synchronizedList = data.map((item: any) => {
-          const name = item.name || item.Name || "";
-          const attending = item.attending === true || item.attending === "Yes" || item.Attending === "Yes" || item.Attending === true;
-          const withPlusOne = item.withPlusOne === true || item.withPlusOne === "Yes" || item.allowedPlusOne === "Yes" || item.allowedPlusOne === true || !!(item.plusOneName || item.PlusOneName);
-          const plusOneName = item.plusOneName || item.PlusOneName || "";
-          const submittedAt = item.submittedAt || item.timestamp || item.Timestamp || new Date().toISOString();
-          return {
-            name,
-            attending,
-            withPlusOne,
-            plusOneName,
-            submittedAt
-          };
-        }).filter((item: any) => item.name);
-
-        // Update Firestore with any new rows found in Google Sheets
-        for (const item of synchronizedList) {
-          const existing = list.find(r => matchNames(r.name, item.name));
-          if (!existing) {
-            await saveFirestoreRSVP(item);
-          }
-        }
-        
-        list = await getFirestoreRSVPs();
-        writeRSVPs(list);
-      }
+    const response = await fetch(GOOGLE_CSV_URL);
+    if (!response.ok) {
+      throw new Error(`Google Sheet CSV returned status ${response.status}`);
     }
-  } catch (err: any) {
-    console.warn("Failed to sync Google Sheet list in background:", err.message);
-  }
+    const text = await response.text();
+    const lines = text.split(/\r?\n/);
+    if (lines.length <= 1) return [];
 
-  const attending = list.filter((r) => r.attending === true || r.attending === "Yes");
-  res.json(attending);
+    const parsed: ParsedSheetRow[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+
+      // Robust CSV line parser supporting quoted cells
+      const parts: string[] = [];
+      let current = "";
+      let inQuotes = false;
+      for (let j = 0; j < line.length; j++) {
+        const char = line[j];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          parts.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+      parts.push(current.trim());
+
+      const nameRaw = parts[0] ? parts[0].replace(/^"|"$/g, '').trim() : "";
+      if (!nameRaw) continue;
+
+      const rsvpStatus = parts[1] ? parts[1].replace(/^"|"$/g, '').trim() : "";
+      const plusOneName = parts[2] ? parts[2].replace(/^"|"$/g, '').trim() : "";
+      const allowedPlusOneRaw = parts[3] ? parts[3].replace(/^"|"$/g, '').trim() : "";
+      const allowedPlusOne = allowedPlusOneRaw.toLowerCase() === "yes";
+
+      parsed.push({
+        name: nameRaw,
+        rsvpStatus,
+        plusOneName,
+        allowedPlusOne
+      });
+    }
+    return parsed;
+  } catch (err: any) {
+    console.error("fetchGuestsFromGoogleSheet failed:", err.message);
+    return [];
+  }
+}
+
+app.get("/api/rsvps", async (req, res) => {
+  try {
+    // 1. Fetch live checklist from the user's published Google Sheet CSV
+    const sheetGuests = await fetchGuestsFromGoogleSheet();
+    const sheetAttending: any[] = [];
+    
+    sheetGuests.forEach(g => {
+      const statusLower = g.rsvpStatus.toLowerCase();
+      const isAttending = statusLower === "attending" || statusLower === "yes" || statusLower === "confirmed";
+      if (isAttending) {
+        sheetAttending.push({
+          name: g.name,
+          attending: true,
+          withPlusOne: g.allowedPlusOne && !!g.plusOneName,
+          plusOneName: g.plusOneName || "",
+          submittedAt: new Date().toISOString()
+        });
+      }
+    });
+
+    // 2. Fetch from Firestore RSVPs as persistent backup
+    const firestoreRSVPs = await getFirestoreRSVPs();
+
+    // Merge: Sheets is primary source, but include any newly added Firestore RSVPs
+    const mergedList = [...sheetAttending];
+    firestoreRSVPs.forEach(f => {
+      const isAttending = f.attending === true || f.attending === "Yes";
+      if (isAttending) {
+        const alreadyInMerged = mergedList.some(m => matchNames(m.name, f.name));
+        if (!alreadyInMerged) {
+          mergedList.push({
+            name: f.name,
+            attending: true,
+            withPlusOne: !!f.withPlusOne,
+            plusOneName: f.plusOneName || "",
+            submittedAt: f.submittedAt || new Date().toISOString()
+          });
+        }
+      }
+    });
+
+    // Sync to local file cache
+    writeRSVPs(mergedList);
+    res.json(mergedList);
+  } catch (err: any) {
+    console.warn("Failed to retrieve synced RSVPs, using local fallback...", err?.message);
+    const local = readRSVPs();
+    res.json(local.filter(r => r.attending));
+  }
 });
 
 // API: Check a guest on the Google Sheet
@@ -346,63 +398,44 @@ app.get("/api/check-guest", async (req, res) => {
     return res.status(400).json({ error: "Name query parameter is required." });
   }
 
-  let foundInGoogle = false;
-  let googleData: any = null;
-
   try {
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
-    const params = new URLSearchParams({ name: nameQuery.trim() });
-    
-    console.log(`Checking guest lookup via Apps Script: ${nameQuery}`);
-    const response = await fetch(`${webAppUrl}?${params.toString()}`);
-    if (response.ok) {
-      googleData = await response.json();
-      if (googleData && googleData.found) {
-        foundInGoogle = true;
+    console.log(`Checking guest lookup via published Sheet CSV: ${nameQuery}`);
+    const sheetGuests = await fetchGuestsFromGoogleSheet();
+    const matchedRow = sheetGuests.find(g => matchNames(nameQuery, g.name));
+
+    if (matchedRow) {
+      console.log(`Successful match in Google Sheet CSV: ${matchedRow.name}`);
+      const rsvps = await getFirestoreRSVPs();
+      const existingRSVP = rsvps.find(r => matchNames(r.name, matchedRow.name));
+
+      const statusLower = matchedRow.rsvpStatus.toLowerCase();
+      const isConfirmedOnSheet = statusLower === "attending" || statusLower === "declined" || statusLower === "yes" || statusLower === "no" || statusLower === "confirmed";
+
+      // Reconstruct RSVP if confirmed in sheets but missing from local Firestore
+      let resolvedRSVP = existingRSVP || null;
+      if (!resolvedRSVP && isConfirmedOnSheet) {
+        resolvedRSVP = {
+          name: matchedRow.name,
+          attending: statusLower === "attending" || statusLower === "yes" || statusLower === "confirmed",
+          withPlusOne: matchedRow.allowedPlusOne && !!matchedRow.plusOneName,
+          plusOneName: matchedRow.plusOneName || "",
+          submittedAt: new Date().toISOString()
+        };
       }
-    } else {
-      console.warn(`Google Sheet Web App responded with non-200 status code: ${response.status}`);
+
+      return res.json({
+        found: true,
+        guestName: matchedRow.name, // Display the guest's full name exactly as stored in the sheet
+        allowedPlusOne: matchedRow.allowedPlusOne, // Check if they are allowed to bring a person "Yes" (others "No" of course)
+        alreadySubmitted: isConfirmedOnSheet || !!existingRSVP,
+        existingRSVP: resolvedRSVP,
+      });
     }
   } catch (err: any) {
-    console.warn("Apps Script check failed, falling back to local and offline registry:", err.message);
+    console.warn("Published Sheet CSV check failed, attempting registry fallback:", err.message);
   }
 
-  // If found in Google Sheets, process and return the result
-  if (foundInGoogle && googleData) {
-    let guestName = nameQuery.trim();
-    if (googleData.message && googleData.message.includes(" is on the list")) {
-      const parts = googleData.message.split(" is on the list");
-      if (parts[0] && parts[0].trim()) {
-        guestName = parts[0].trim();
-      }
-    }
-
-    if (guestName === guestName.toLowerCase() || guestName === guestName.toUpperCase()) {
-      guestName = guestName
-        .toLowerCase()
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-    }
-
-    const rsvps = await getFirestoreRSVPs();
-    const existingRSVP = rsvps.find((r) => matchNames(r.name, guestName));
-
-    // Fallback: check offline registry too to double-verify plus-one eligibility
-    const offlineGuests = getOfflineGuests();
-    const matchedOffline = offlineGuests.find(g => matchNames(guestName, g.name) || matchNames(nameQuery, g.name));
-    const offlineAllowed = matchedOffline ? matchedOffline.allowedPlusOne : false;
-
-    const sheetsAllowed = googleData.allowedPlusOne === true || googleData.allowedPlusOne === "Yes" || googleData.allowedPlusOne === "yes";
-    return res.json({
-      found: true,
-      guestName,
-      allowedPlusOne: sheetsAllowed || offlineAllowed,
-      alreadySubmitted: !!existingRSVP,
-      existingRSVP: existingRSVP || null,
-    });
-  }
-
-  // Double Check Offline Local Databases to prevent "Server check error" and rate-limiting lockouts:
-  // 1. Search in the official pre-invited guest list in `weddingDetails.ts` using our smart matching logic
+  // Backup fallback: check offline registry from weddingDetails.ts
   try {
     const offlineGuests = getOfflineGuests();
     const matchedGuest = offlineGuests.find(g => matchNames(nameQuery, g.name));
@@ -410,7 +443,7 @@ app.get("/api/check-guest", async (req, res) => {
     if (matchedGuest) {
       console.log(`Successful match in offline database for: ${matchedGuest.name}`);
       const rsvps = await getFirestoreRSVPs();
-      const existingRSVP = rsvps.find((r) => matchNames(r.name, matchedGuest.name) || matchNames(r.name, nameQuery));
+      const existingRSVP = rsvps.find(r => matchNames(r.name, matchedGuest.name) || matchNames(r.name, nameQuery));
 
       return res.json({
         found: true,
@@ -421,9 +454,9 @@ app.get("/api/check-guest", async (req, res) => {
       });
     }
 
-    // 2. Search in existing RSVPs in case they already RSVP'd
+    // Direct firestore RSVP backup lookup
     const rsvps = await getFirestoreRSVPs();
-    const existingRSVP = rsvps.find((r) => matchNames(r.name, nameQuery));
+    const existingRSVP = rsvps.find(r => matchNames(r.name, nameQuery));
     if (existingRSVP) {
       console.log(`Successful match in Firestore RSVPs: ${existingRSVP.name}`);
       return res.json({
@@ -438,7 +471,6 @@ app.get("/api/check-guest", async (req, res) => {
     console.error("Local/Offline fallback match failure:", localErr);
   }
 
-  // Safe and friendly "Not found" response mapping (resolves to standard 200 Not Found on the frontend rather than 500 Network error)
   return res.json({ found: false });
 });
 
@@ -450,32 +482,24 @@ app.post("/api/rsvp", async (req, res) => {
     return res.status(400).json({ error: "Name is required for RSVP." });
   }
 
-  // Server-side check: verify if the guest is allowed to bring a plus-one
   let isAllowedToBring = false;
-
-  // 1. Check offline guest database first
-  const offlineGuests = getOfflineGuests();
-  const matchedOffline = offlineGuests.find(g => matchNames(name, g.name));
-  if (matchedOffline) {
-    isAllowedToBring = matchedOffline.allowedPlusOne;
-  } else {
-    // 2. Query Google Sheet dynamically to check if we can verify their allowedPlusOne status
-    try {
-      const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
-      const params = new URLSearchParams({ name: name.trim() });
-      const response = await fetch(`${webAppUrl}?${params.toString()}`);
-      if (response.ok) {
-        const googleData = await response.json();
-        if (googleData && googleData.found) {
-          isAllowedToBring = googleData.allowedPlusOne === true || googleData.allowedPlusOne === "Yes" || googleData.allowedPlusOne === "yes";
-        }
+  try {
+    const sheetGuests = await fetchGuestsFromGoogleSheet();
+    const matchedRow = sheetGuests.find(g => matchNames(name, g.name));
+    if (matchedRow) {
+      isAllowedToBring = matchedRow.allowedPlusOne;
+    } else {
+      const offlineGuests = getOfflineGuests();
+      const matchedOffline = offlineGuests.find(g => matchNames(name, g.name));
+      if (matchedOffline) {
+        isAllowedToBring = matchedOffline.allowedPlusOne;
       }
-    } catch (err: any) {
-      console.warn("Apps Script allowedPlusOne lookup check failed during submit:", err.message);
     }
+  } catch (err: any) {
+    console.error("Failed to verify allowedPlusOne during submit:", err.message);
   }
 
-  // Enforce the seating policy
+  // Enforce seating policies and plus-one rules
   const finalWithPlusOne = isAllowedToBring ? (!!withPlusOne) : false;
   const finalPlusOneName = finalWithPlusOne ? (plusOneName || "") : "";
 
@@ -491,7 +515,7 @@ app.post("/api/rsvp", async (req, res) => {
   // 1. Save to cloud Firestore database
   await saveFirestoreRSVP(updatedRSVP);
 
-  // 2. Sync to local rsvps.json as key-value server cache
+  // 2. Sync to local rsvps.json cache
   const rsvps = readRSVPs();
   const targetClean = cleanString(name);
   const index = rsvps.findIndex((r) => cleanString(r.name) === targetClean);
@@ -502,29 +526,44 @@ app.post("/api/rsvp", async (req, res) => {
   }
   writeRSVPs(rsvps);
 
-  // 3. Send to Google Apps Script Web App
+  // 3. Send update to Apps Script Web App
   try {
     const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
     
+    // Core requirements:
+    // - Attending maps to "attending"
+    // - Declined/Not attending maps to "No"
+    // - Plus-One Name contains companion name if allowed and bringing, otherwise empty string ""
+    const statusVal = (attending === true || attending === "Yes") ? "attending" : "No";
+    const companionVal = finalWithPlusOne ? (finalPlusOneName || "") : "";
+
     const payload = {
       name: name,
-      attending: (attending === true || attending === "Yes") ? "Yes" : "No",
-      plusOneName: finalWithPlusOne ? (finalPlusOneName || "") : "",
-      allowedPlusOne: finalWithPlusOne ? "Yes" : "No",
+      attending: statusVal,
+      rsvpStatus: statusVal,
+      "RSVP Status": statusVal,
+      plusOneName: companionVal,
+      "Plus One Name": companionVal,
+      allowedPlusOne: isAllowedToBring ? "Yes" : "No",
+      "Allowed Plus One?": isAllowedToBring ? "Yes" : "No",
       timestamp: now
     };
 
     const urlParams = new URLSearchParams({
       name: name,
-      attending: (attending === true || attending === "Yes") ? "Yes" : "No",
-      plusOneName: finalWithPlusOne ? (finalPlusOneName || "") : "",
-      allowedPlusOne: finalWithPlusOne ? "Yes" : "No",
+      attending: statusVal,
+      rsvpStatus: statusVal,
+      "RSVP Status": statusVal,
+      plusOneName: companionVal,
+      "Plus One Name": companionVal,
+      allowedPlusOne: isAllowedToBring ? "Yes" : "No",
+      "Allowed Plus One?": isAllowedToBring ? "Yes" : "No",
       timestamp: now
     });
 
     const targetUrl = `${webAppUrl}?${urlParams.toString()}`;
 
-    console.log("Forwarding RSVP to Google Sheets Web App via POST...", payload);
+    console.log("Forwarding RSVP to Google Sheets Web App...", payload);
     
     let useGetFallback = false;
     try {
@@ -539,9 +578,8 @@ app.post("/api/rsvp", async (req, res) => {
       const responseText = await response.text();
       console.log(`POST to Apps Script returned status: ${response.status}`);
       
-      // If doPost is not implemented/configured, it returns an HTML error page containing 'doPost'
       if (responseText.includes("doPost") || response.status !== 200) {
-        console.warn("POST method is not supported (likely missing doPost). Opting for GET fallback...");
+        console.warn("POST method is not supported or missing doPost. Trying GET fallback...");
         useGetFallback = true;
       } else {
         console.log("RSVP forwarded successfully via POST.");

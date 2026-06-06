@@ -567,11 +567,19 @@ export default function App() {
       try {
         const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
         const now = new Date().toISOString();
+        
+        const clientStatusVal = rsvpObj.attending ? "attending" : "No";
+        const clientCompanionVal = rsvpObj.withPlusOne ? rsvpObj.plusOneName : "";
+
         const urlParams = new URLSearchParams({
           name: rsvpObj.name,
-          attending: rsvpObj.attending ? "Yes" : "No",
-          plusOneName: rsvpObj.withPlusOne ? rsvpObj.plusOneName : "",
-          allowedPlusOne: rsvpObj.withPlusOne ? "Yes" : "No",
+          attending: clientStatusVal,
+          rsvpStatus: clientStatusVal,
+          "RSVP Status": clientStatusVal,
+          plusOneName: clientCompanionVal,
+          "Plus One Name": clientCompanionVal,
+          allowedPlusOne: checkResult?.allowedPlusOne ? "Yes" : "No",
+          "Allowed Plus One?": checkResult?.allowedPlusOne ? "Yes" : "No",
           timestamp: now
         });
         
