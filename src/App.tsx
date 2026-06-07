@@ -1309,49 +1309,53 @@ export default function App() {
         </section>
 
         {/* ==================================================================== */}
-        {/* RSVP FORM SECTION & POPUP (Fully persistent via Sheet / rsvps endpoint) */}
+        {/* RSVP FORM SECTION (Matched to picture exactly) */}
         {/* ==================================================================== */}
         <section className="w-full max-w-4xl mx-auto px-4 py-8 mb-16" id="rsvp-section">
           <div className="bg-gradient-to-br from-[#FFF5F7] to-[#F2FAFF] p-8 md:p-12 rounded-3xl border border-white/50 shadow-xl flex flex-col items-center text-center">
             
-            <div className="inline-flex p-3 bg-pink-100/50 rounded-full mb-4">
-              <Heart className="w-6 h-6 text-pink-500 animate-pulse" />
+            <div className="w-12 h-12 bg-pink-100/40 rounded-full flex items-center justify-center mb-5 border border-pink-200/30">
+              <Heart className="w-5 h-5 text-pink-500" />
             </div>
             
-            <h2 className="text-4xl font-script text-[#DE5B7B] mb-2">Be Our Guest</h2>
-            <p className="text-slate-600 font-medium text-xs tracking-widest uppercase mb-4">R s v p</p>
-            <p className="text-slate-500 max-w-sm text-xs md:text-sm leading-relaxed mb-6 italic">
+            <h2 className="text-4xl md:text-5xl font-script text-[#DE5B7B] mb-2 leading-none">Be Our Guest</h2>
+            <p className="text-slate-600 font-sans font-semibold text-xs tracking-[0.3em] uppercase mb-5 font-medium">R s v p</p>
+            <p className="text-slate-500 max-w-md text-xs md:text-sm leading-relaxed mb-8 italic">
               "We would be honored to have you celebrate with us."
             </p>
 
-            {/* Click to display popup as requested */}
-            <button 
-              onClick={() => setIsRSVPModalOpen(true)}
+            {/* Click to confirm attendance on Apps Script form */}
+            <a 
+              href="https://script.google.com/macros/s/AKfycby1OLKgaKexZwzeN7SJzJWcycP1_yQoWM6LY9QeLuE6JHZVc9pLq_WUS5JbOeFMHVKz6A/exec"
+              target="_blank"
+              rel="noopener noreferrer"
               id="confirm-attendance-btn"
-              className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white font-sans text-xs md:text-sm font-bold uppercase tracking-widest rounded-xl transition-all duration-300 shadow-[0_10px_25px_rgba(30,41,59,0.25)] hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+              className="px-10 py-5 bg-[#1F2937] hover:bg-[#111827] text-white font-sans text-xs md:text-sm font-bold uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 shadow-[0_12px_30px_rgba(31,41,55,0.3)] hover:scale-[1.03] active:scale-95 flex items-center justify-center gap-2.5"
             >
-              <Check className="w-4 h-4 text-pink-300" /> Confirm Attendance
-            </button>
+              <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> CONFIRM ATTENDANCE
+            </a>
 
             {/* LIVE FEED: Guests who said YES to the invitation as requested */}
-            <div className="mt-12 w-full max-w-2xl bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/80 text-left">
-              <div className="flex justify-between items-center mb-4 border-b border-pink-100/60 pb-2">
-                <span className="text-[11px] font-bold text-[#567BA2] uppercase tracking-wider flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-[#DE5B7B]" /> Attending Guests Stream
+            <div className="mt-12 w-full max-w-2xl bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/80 text-left shadow-sm">
+              <div className="flex justify-between items-center mb-4 border-b border-pink-100/60 pb-3">
+                <span className="text-[11px] font-bold text-[#567BA2] uppercase tracking-[0.15em] flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#DE5B7B]" /> ATTENDING GUESTS STREAM
                 </span>
-                <span className="px-2.5 py-0.5 bg-pink-100 text-[#DE5B7B] rounded-full text-[10px] font-bold font-mono">
+                <span className="px-3 py-1 bg-pink-100/60 text-[#DE5B7B] rounded-full text-[10px] font-bold uppercase tracking-wider">
                   {attendingGuests.length} Confirmed
                 </span>
               </div>
 
               {isLoadingGuests ? (
-                <p className="text-center text-xs text-slate-400 py-4 animate-pulse">Loading verified guests list...</p>
+                <p className="text-center text-xs text-slate-400 py-6 animate-pulse font-sans">Loading verified guests list...</p>
               ) : attendingGuests.length === 0 ? (
-                <p className="text-center text-xs text-slate-400 py-4">Be the first to say Yes and secure your seats!</p>
+                <p className="text-center text-xs text-slate-400/90 py-8 font-sans">
+                  Be the first to say Yes and secure your seats!
+                </p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1 cs-scroll">
                   {attendingGuests.map((guest, i) => (
-                    <div key={i} className="bg-white p-2.5 rounded-lg border border-pink-50 flex items-center justify-between shadow-sm">
+                    <div key={i} className="bg-white p-3 rounded-xl border border-pink-50 flex items-center justify-between shadow-sm">
                       <div className="flex items-center gap-2">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
@@ -1456,19 +1460,19 @@ export default function App() {
                     <span className="text-[10px] uppercase font-bold tracking-widest text-[#567BA2] block mb-1">
                       Welcome Guest
                     </span>
-                    <h3 className="text-xl font-bold text-slate-800 uppercase tracking-wide">
+                    <h3 className="text-xl font-bold text-slate-800 uppercase tracking-wide font-sans">
                       YOU ARE INVITED TO THE WEDDING OF
                     </h3>
-                    <h4 className="text-2xl font-script text-[#DE5B7B] tracking-normal my-1">
+                    <h4 className="text-3xl font-script text-[#DE5B7B] my-2">
                       {WEDDING_DETAILS.names}
                     </h4>
-                    <p className="text-[11px] text-slate-400 mt-2">
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-sans max-w-sm mx-auto">
                       Please enter your full name exactly as designated in your invitation card to confirm eligibility.
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase text-slate-400 tracking-wider">
+                  <div className="space-y-2 text-left">
+                    <label className="text-[11px] font-bold uppercase text-slate-400 tracking-wider font-sans">
                       Enter your full name to RSVP:
                     </label>
                     <div className="relative">
@@ -1497,7 +1501,7 @@ export default function App() {
                   </div>
 
                   {rsvpError && (
-                    <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex gap-2 text-amber-800 text-[11px]">
+                    <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex gap-2 text-amber-800 text-[11px] text-left">
                       <AlertTriangle className="w-5 h-5 shrink-0 text-amber-500" />
                       <p className="leading-normal">{rsvpError}</p>
                     </div>
@@ -1507,58 +1511,72 @@ export default function App() {
                     <button 
                       type="submit"
                       disabled={isChecking}
-                      className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white leading-none text-xs font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md"
+                      className="w-full py-3.5 bg-[#1E293B] hover:bg-[#0F172A] text-white leading-none text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md"
                     >
                       Check My Invitation
                     </button>
                   </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+                    <p className="text-[10px] text-slate-400 leading-loose">
+                      Registered on Google Sheets API:
+                    </p>
+                    <a 
+                      href="https://script.google.com/macros/s/AKfycby1OLKgaKexZwzeN7SJzJWcycP1_yQoWM6LY9QeLuE6JHZVc9pLq_WUS5JbOeFMHVKz6A/exec" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="inline-flex gap-1 items-center text-[10px] font-bold text-[#DE5B7B] underline hover:text-[#C84B6B] uppercase tracking-wider"
+                    >
+                      <Sparkles className="w-3 h-3 text-pink-400" /> Verify direct sheet confirmation form
+                    </a>
+                  </div>
                 </form>
               ) : !submittedRSVPPresence ? (
                 // STAGE 2: Verification found, configure options
-                <form onSubmit={handleSubmitRSVP} className="space-y-5">
+                <form onSubmit={handleSubmitRSVP} className="space-y-5 text-left">
                   <div className="text-center mb-4">
                     <div className="inline-flex p-2 bg-[#E1EDF7] text-blue-600 rounded-full mb-2">
-                      <CheckCircle2 className="w-5 h-5 text-[#567BA2]" />
+                      <CheckCircle2 className="w-5 h-5" />
                     </div>
-                    <p className="text-[10px] uppercase font-bold text-[#567BA2] tracking-widest mb-1">Invitation Confirmed</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-1">Invitation Confirmed</p>
                     <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wide">
                       Welcome, {checkResult.guestName}!
                     </h3>
                     {checkResult.alreadySubmitted && (
-                      <p className="text-[9px] text-[#A64B62] bg-pink-50 rounded px-2 py-0.5 inline-block mt-1 font-bold">
-                        Note: You previously submitted RSVP response. Resubmitting will update it.
+                      <p className="text-[9px] text-[#A64B62] bg-pink-50 rounded-full px-3 py-1 inline-block mt-2 font-bold uppercase tracking-wider">
+                        Note: You can update your response below
                       </p>
                     )}
                   </div>
 
                   {/* Seat Allowance Status Card */}
-                  <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3.5 text-center space-y-1">
-                    <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-center space-y-1">
+                    <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">
                       Seating Allowance
                     </span>
                     <p className={`text-xs font-black uppercase tracking-wider inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${checkResult.allowedPlusOne ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"}`}>
-                      {checkResult.allowedPlusOne ? "✨ 2 Seats (You + 1 Plus-One Allowed)" : "🎟️ 1 Seat (Single Guest RSVP)"}
+                      {checkResult.allowedPlusOne ? "✨ 2 Seats (You + 1 Plus-One)" : "🎟️ 1 Seat (Single Guest)"}
                     </p>
                     <p className="text-[10px] text-slate-400 leading-normal max-w-xs mx-auto">
                       {checkResult.allowedPlusOne 
-                        ? "You are welcome to bring one companion. Check the companion box below and enter their full name."
-                        : "Due to strict venue seating limits, your slot is reserved strictly for you."}
+                        ? "You are allowed to bring a companion. Check the companion box below and enter their full name."
+                        : "Due to venue capacity constraints, your slot is single seat only."}
                     </p>
                   </div>
 
                   {/* Decision: Attending or Not */}
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                      Will you be attending?
+                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider font-sans">
+                      Will you be attending the wedding?
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 font-sans">
                       <button
                         type="button"
                         onClick={() => setAttendingResponse(true)}
                         className={`py-3.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider border-2 flex flex-col items-center justify-center transition-all ${
                           attendingResponse === true 
                             ? 'bg-pink-100/40 border-[#DE5B7B] text-[#DE5B7B]' 
-                            : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
+                            : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
                         }`}
                       >
                         <Heart className="w-4 h-4 mb-1 shrink-0" />
@@ -1581,7 +1599,7 @@ export default function App() {
 
                   {/* Plus One setup if eligible from Sheet */}
                   {attendingResponse && checkResult.allowedPlusOne && (
-                    <div className="bg-pink-50/40 p-4 rounded-xl border border-pink-100 space-y-3">
+                    <div className="bg-pink-50/40 p-4 rounded-xl border border-pink-100 space-y-3 font-sans">
                       <label className="flex items-center gap-2 cursor-pointer select-none">
                         <input 
                           type="checkbox" 
@@ -1604,7 +1622,7 @@ export default function App() {
                             value={plusOneName}
                             onChange={(e) => setPlusOneName(e.target.value)}
                             placeholder="Full name of companion"
-                            className="w-full text-xs px-3 py-2 border border-pink-200 rounded-lg bg-white bg-slate-50/30"
+                            className="w-full text-xs px-3 py-2 border border-pink-200 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-pink-300"
                             required
                           />
                         </div>
@@ -1613,12 +1631,12 @@ export default function App() {
                   )}
 
                   {rsvpError && (
-                    <div className="bg-red-50 text-red-800 text-[11px] p-3 rounded-lg border border-red-100">
+                    <div className="bg-red-50 text-red-800 text-[11px] p-3 rounded-lg border border-red-100 font-sans">
                       {rsvpError}
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-2 pt-2 font-sans">
                     <button
                       type="button"
                       onClick={() => setCheckResult(null)}
@@ -1630,7 +1648,7 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex-1 py-3 bg-slate-800 text-white rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-md"
+                      className="flex-1 py-3 bg-[#1E293B] hover:bg-[#0F172A] text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-md"
                     >
                       {isSubmitting ? (
                         <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
@@ -1642,9 +1660,9 @@ export default function App() {
                 </form>
               ) : (
                 // STAGE 3: Final confirmation visual splash
-                <div className="text-center py-6 space-y-4">
+                <div className="text-center py-6 space-y-4 font-sans">
                   <div className="w-16 h-16 bg-pink-100 text-[#DE5B7B] rounded-full flex items-center justify-center mx-auto my-2 shadow-inner">
-                    <Heart className="w-8 h-8 animate-beat" fill="currentColor" />
+                    <Heart className="w-8 h-8 animate-pulse" fill="rgba(244,63,94,0.15)" />
                   </div>
                   
                   <h3 className="text-2xl font-script text-[#E87390]">Joyous Celebration awaits!</h3>
@@ -1654,13 +1672,16 @@ export default function App() {
                       : "We will miss your presence closely but appreciate your heartfelt response. Thank you, family! 💕"}
                   </p>
 
-                  <div className="pt-4">
+                  <div className="pt-4 space-y-2">
                     <button
                       onClick={handleCloseRSVP}
-                      className="px-6 py-2.5 bg-slate-800 text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-slate-700 transition-colors"
+                      className="w-full px-6 py-2.5 bg-[#1E293B] hover:bg-[#0F172A] text-white text-xs font-bold uppercase tracking-widest rounded-lg transition-colors"
                     >
                       Back to Invitation
                     </button>
+                    <p className="text-[10px] text-slate-400">
+                      Response recorded on Sheet via <a href="https://script.google.com/macros/s/AKfycby1OLKgaKexZwzeN7SJzJWcycP1_yQoWM6LY9QeLuE6JHZVc9pLq_WUS5JbOeFMHVKz6A/exec" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#DE5B7B]">Apps Script Endpoint</a>
+                    </p>
                   </div>
                 </div>
               )}
