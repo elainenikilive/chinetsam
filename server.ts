@@ -528,7 +528,7 @@ app.post("/api/rsvp", async (req, res) => {
 
   // 3. Send update to Apps Script Web App
   try {
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbwL5_x-u2IxiDNi6drinsUTNuRvDNoh3KKOhvHKa9lBIEsKVSLKwzMZJwBYwejbEgkLQQ/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycby1OLKgaKexZwzeN7SJzJWcycP1_yQoWM6LY9QeLuE6JHZVc9pLq_WUS5JbOeFMHVKz6A/exec";
     
     // Core requirements:
     // - Attending maps to "attending"
