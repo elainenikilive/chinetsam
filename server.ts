@@ -353,7 +353,7 @@ app.get("/api/rsvps", async (req, res) => {
         sheetAttending.push({
           name: g.name,
           attending: true,
-          withPlusOne: g.allowedPlusOne && !!g.plusOneName,
+          withPlusOne: !!g.plusOneName,
           plusOneName: g.plusOneName || "",
           submittedAt: new Date().toISOString()
         });
