@@ -1394,57 +1394,13 @@ export default function App() {
                         )}
                       </div>
                       
-                      {isAdminAuthenticated && (
-                        <button
-                          onClick={() => handleDeleteGuest(guest.name)}
-                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded transition-colors shrink-0"
-                          title={`Delete RSVP for ${guest.name}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Host admin tools row inside the stream card */}
-              <div className="mt-4 pt-3 border-t border-slate-100/60 flex justify-between items-center">
-                {isAdminAuthenticated ? (
-                  <div className="flex justify-between items-center w-full">
-                    <span className="text-[9px] text-[#567BA2] font-semibold uppercase tracking-wider flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Host Admin Mode
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleClearAllGuests}
-                        className={`text-[9px] font-bold px-2.5 py-1 rounded transition-all uppercase tracking-wider ${
-                          isConfirmingClear 
-                            ? "bg-red-500 text-white animate-pulse" 
-                            : "text-red-500 border border-red-200 bg-red-50/50 hover:bg-red-50"
-                        }`}
-                      >
-                        {isConfirmingClear ? "Confirm Clear" : "Clear All Stream"}
-                      </button>
-                      <button
-                        onClick={() => setIsAdminAuthenticated(false)}
-                        className="text-[9px] font-bold text-slate-500 hover:text-slate-800 px-2.5 py-1 rounded transition-colors uppercase tracking-wider"
-                      >
-                        Exit Admin
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-end w-full">
-                    <button
-                      onClick={() => setIsAdminModalOpen(true)}
-                      className="text-[9px] font-bold text-slate-400 hover:text-[#567BA2] uppercase tracking-wider transition-all flex items-center gap-1"
-                    >
-                      <Settings className="w-3 h-3" /> Host Admin Portal
-                    </button>
-                  </div>
-                )}
-              </div>
+
 
             </div>
 
@@ -1488,19 +1444,9 @@ export default function App() {
             {/* Header panel */}
             <div className="px-5 py-3 border-b border-pink-50 flex items-center justify-between shrink-0 bg-gradient-to-r from-pink-50/10 to-transparent">
               
-              {/* Highly intuitive Back button */}
-              <button 
-                onClick={handleCloseRSVP}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] md:text-[11px] font-sans font-bold uppercase tracking-wider text-slate-600 hover:text-pink-600 bg-slate-100 hover:bg-pink-100/60 transition-all duration-200"
-                title="Back to website invitation"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Invitation</span>
-              </button>
-
               <div className="flex items-center gap-2">
                 <Heart className="w-4 h-4 text-pink-500 fill-pink-500/10 animate-pulse" />
-                <span className="font-sans font-extrabold text-slate-700 text-[10px] tracking-widest uppercase hidden xs:inline">RSVP</span>
+                <span className="font-sans font-extrabold text-[#567BA2] text-xs tracking-widest uppercase">RSVP PORTAL</span>
               </div>
               
               {/* Header Close button */}
@@ -1534,71 +1480,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ==================================================================== */}
-      {/* HOST ADMIN ACCESS MODAL */}
-      {/* ==================================================================== */}
-      {isAdminModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setIsAdminModalOpen(false)} />
-          <div className="relative bg-white/95 backdrop-blur-xl w-full max-w-sm rounded-2xl p-6 border border-pink-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden z-50 animate-scaleUp">
-            <button 
-              onClick={() => setIsAdminModalOpen(false)} 
-              className="absolute top-4 right-4 p-1.5 hover:bg-pink-50 text-slate-400 hover:text-[#DE5B7B] rounded-full transition-colors"
-              title="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            
-            <div className="text-center mb-5 mt-2">
-              <div className="inline-flex p-2 bg-pink-50 text-[#DE5B7B] rounded-full mb-2">
-                <Settings className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wide">Host Admin Portal</h3>
-              <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">
-                Enter Wedding Date PIN to edit guest lists
-              </p>
-            </div>
 
-            <form onSubmit={handleAdminSubmit} className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-left">
-                  Admin PIN (Wedding Date)
-                </label>
-                <input
-                  type="password"
-                  placeholder="Enter 4-digit PIN (e.g. July 18 = 0718)"
-                  maxLength={4}
-                  value={adminPinInput}
-                  onChange={(e) => {
-                    setAdminPinInput(e.target.value.replace(/\D/g, ""));
-                    setAdminPinError("");
-                  }}
-                  className="w-full bg-slate-100 border border-slate-100 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 font-mono text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-pink-100 focus:border-[#DE5B7B] transition-all"
-                  autoFocus
-                />
-                {adminPinError && (
-                  <p className="text-[10px] text-red-500 font-bold mt-1 text-left flex items-center gap-1 animate-pulse">
-                    <AlertCircle className="w-3.5 h-3.5" /> {adminPinError}
-                  </p>
-                )}
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-sans text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-102 active:scale-98 shadow-md"
-                >
-                  Unlock Guest Controls
-                </button>
-              </div>
-              
-              <p className="text-[10px] text-slate-400 text-center leading-relaxed font-semibold uppercase">
-                Default PIN: <span className="font-bold text-[#DE5B7B]">0718</span>
-              </p>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -347,13 +347,13 @@ app.get("/api/rsvps", async (req, res) => {
     const sheetAttending: any[] = [];
     
     sheetGuests.forEach(g => {
-      const statusLower = g.rsvpStatus.toLowerCase();
-      const isAttending = statusLower === "attending" || statusLower === "yes" || statusLower === "confirmed";
+      const statusLower = g.rsvpStatus.toLowerCase().trim();
+      const isAttending = statusLower.includes("yes") || statusLower.includes("attending") || statusLower.includes("confirmed") || statusLower.includes("love");
       if (isAttending) {
         sheetAttending.push({
           name: g.name,
           attending: true,
-          withPlusOne: !!g.plusOneName,
+          withPlusOne: g.allowedPlusOne && !!g.plusOneName,
           plusOneName: g.plusOneName || "",
           submittedAt: new Date().toISOString()
         });
@@ -408,15 +408,16 @@ app.get("/api/check-guest", async (req, res) => {
       const rsvps = await getFirestoreRSVPs();
       const existingRSVP = rsvps.find(r => matchNames(r.name, matchedRow.name));
 
-      const statusLower = matchedRow.rsvpStatus.toLowerCase();
-      const isConfirmedOnSheet = statusLower === "attending" || statusLower === "declined" || statusLower === "yes" || statusLower === "no" || statusLower === "confirmed";
+      const statusLower = matchedRow.rsvpStatus.toLowerCase().trim();
+      const isConfirmedOnSheet = statusLower.length > 0;
+      const isAttending = statusLower.includes("yes") || statusLower.includes("attending") || statusLower.includes("confirmed") || statusLower.includes("love");
 
       // Reconstruct RSVP if confirmed in sheets but missing from local Firestore
       let resolvedRSVP = existingRSVP || null;
       if (!resolvedRSVP && isConfirmedOnSheet) {
         resolvedRSVP = {
           name: matchedRow.name,
-          attending: statusLower === "attending" || statusLower === "yes" || statusLower === "confirmed",
+          attending: isAttending,
           withPlusOne: matchedRow.allowedPlusOne && !!matchedRow.plusOneName,
           plusOneName: matchedRow.plusOneName || "",
           submittedAt: new Date().toISOString()
