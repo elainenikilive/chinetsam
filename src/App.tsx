@@ -1354,7 +1354,7 @@ export default function App() {
                   <Users className="w-4 h-4 text-[#DE5B7B]" /> ATTENDING GUESTS STREAM
                 </span>
                 <span className="px-3 py-1 bg-pink-100/60 text-[#DE5B7B] rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  {attendingGuests.length} Confirmed
+                  {attendingGuests.reduce((acc, g) => acc + 1 + (g.withPlusOne && g.plusOneName ? 1 : 0), 0)} Confirmed
                 </span>
               </div>
 
@@ -1367,33 +1367,42 @@ export default function App() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1 cs-scroll">
                   {attendingGuests.map((guest, i) => (
-                    <div key={i} className="bg-white p-3 rounded-xl border border-pink-50 flex items-center justify-between shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
-                        </span>
-                        <span className="text-xs font-bold text-slate-700 uppercase truncate max-w-44" title={guest.name}>
-                          {guest.name}
-                        </span>
+                    <div key={i} className="bg-white p-3.5 rounded-xl border border-pink-50 flex items-start justify-between shadow-sm gap-2 min-h-[58px]">
+                      <div className="flex-1 min-w-0">
+                        {/* Guest name */}
+                        <div className="flex items-center gap-2">
+                          <span className="relative flex h-2 w-2 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+                          </span>
+                          <span className="text-xs font-bold text-slate-700 uppercase truncate" title={guest.name}>
+                            {guest.name}
+                          </span>
+                        </div>
+                        
+                        {/* Companion name */}
+                        {guest.withPlusOne && guest.plusOneName && (
+                          <div className="mt-2 pl-4 flex items-center gap-1.5 text-slate-500 min-w-0">
+                            <Heart className="w-3 h-3 text-pink-400 shrink-0 fill-pink-400/10" />
+                            <span className="text-[11px] font-semibold uppercase tracking-wider truncate text-slate-600" title={`Companion: ${guest.plusOneName}`}>
+                              {guest.plusOneName}
+                            </span>
+                            <span className="text-[7px] text-pink-500 bg-pink-50 border border-pink-100/50 px-1.5 py-0.5 rounded shrink-0 font-extrabold tracking-widest uppercase">
+                              Companion
+                            </span>
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="flex items-center gap-1.5">
-                        {guest.withPlusOne && guest.plusOneName && (
-                          <span className="text-[8px] font-bold text-slate-400 uppercase bg-slate-50 px-1.5 py-0.5 rounded whitespace-nowrap" title={`Plus one: ${guest.plusOneName}`}>
-                            + {guest.plusOneName}
-                          </span>
-                        )}
-                        {isAdminAuthenticated && (
-                          <button
-                            onClick={() => handleDeleteGuest(guest.name)}
-                            className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors ml-1"
-                            title={`Delete RSVP for ${guest.name}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
+                      {isAdminAuthenticated && (
+                        <button
+                          onClick={() => handleDeleteGuest(guest.name)}
+                          className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-50 rounded transition-colors shrink-0"
+                          title={`Delete RSVP for ${guest.name}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
