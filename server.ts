@@ -368,6 +368,16 @@ app.get("/api/rsvps", async (req, res) => {
     firestoreRSVPs.forEach(f => {
       const isAttending = f.attending === true || f.attending === "Yes";
       if (isAttending) {
+        // If they are on the Google Sheet, they must also be in sheetAttending to be listed in the stream.
+        // If they are on the Google Sheet but not in sheetAttending, their status on the Sheet has been deleted, cleared, or set to declined.
+        const onSheet = sheetGuests.some(g => matchNames(g.name, f.name));
+        if (onSheet) {
+          const inSheetAttending = sheetAttending.some(m => matchNames(m.name, f.name));
+          if (!inSheetAttending) {
+            return; // Skip adding from Firestore since they aren't marked attending on Sheet
+          }
+        }
+
         const alreadyInMerged = mergedList.some(m => matchNames(m.name, f.name));
         if (!alreadyInMerged) {
           mergedList.push({
@@ -413,9 +423,9 @@ app.get("/api/check-guest", async (req, res) => {
       const isAttending = statusLower.includes("yes") || statusLower.includes("attending") || statusLower.includes("confirmed") || statusLower.includes("love");
 
       // Reconstruct RSVP if confirmed in sheets but missing from local Firestore
-      let resolvedRSVP = existingRSVP || null;
-      if (!resolvedRSVP && isConfirmedOnSheet) {
-        resolvedRSVP = {
+      let resolvedRSVP = null;
+      if (isConfirmedOnSheet) {
+        resolvedRSVP = existingRSVP || {
           name: matchedRow.name,
           attending: isAttending,
           withPlusOne: matchedRow.allowedPlusOne && !!matchedRow.plusOneName,
@@ -428,7 +438,7 @@ app.get("/api/check-guest", async (req, res) => {
         found: true,
         guestName: matchedRow.name, // Display the guest's full name exactly as stored in the sheet
         allowedPlusOne: matchedRow.allowedPlusOne, // Check if they are allowed to bring a person "Yes" (others "No" of course)
-        alreadySubmitted: isConfirmedOnSheet || !!existingRSVP,
+        alreadySubmitted: isConfirmedOnSheet,
         existingRSVP: resolvedRSVP,
       });
     }
