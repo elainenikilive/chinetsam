@@ -20,7 +20,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Trash2,
-  Settings
+  Settings,
+  ArrowLeft
 } from "lucide-react";
 import { WEDDING_DETAILS } from "./data/weddingDetails";
 import { RSVPData, GuestCheckResponse } from "./types";
@@ -649,6 +650,14 @@ export default function App() {
     setWithPlusOne(false);
     setPlusOneName("");
     setIsIframeLoading(true);
+
+    // Scroll to the RSVP section dynamically so the user lands exactly where they started on back/close
+    setTimeout(() => {
+      const element = document.getElementById("rsvp-section");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 120);
   };
 
   // Filter Sponsors List dynamically
@@ -1434,123 +1443,6 @@ export default function App() {
         </section>
 
         {/* ==================================================================== */}
-        {/* INTERACTIVE RSVP DIALOG POPUP / MODAL PANEL */}
-        {/* ==================================================================== */}
-        {isRSVPModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6" id="rsvp-modal-overlay">
-            {/* Dark elegant blur overlay background */}
-            <div 
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
-              onClick={handleCloseRSVP}
-            />
-
-            <div className="relative bg-white rounded-3xl shadow-2xl border border-pink-100 max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden z-10 animate-scaleUp">
-              
-              {/* Header panel */}
-              <div className="px-6 py-4.5 border-b border-pink-50/80 flex items-center justify-between shrink-0 bg-gradient-to-r from-pink-50/10 to-transparent">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-pink-500 fill-pink-500/10 animate-pulse" />
-                  <span className="font-sans font-extrabold text-slate-700 text-[10px] tracking-widest uppercase">Wedding RSVP Portal</span>
-                </div>
-                
-                {/* Header Close button */}
-                <button 
-                  onClick={handleCloseRSVP}
-                  className="p-1.5 bg-slate-50 hover:bg-pink-100/60 text-slate-400 hover:text-[#DE5B7B] rounded-full transition-colors flex items-center justify-center"
-                  title="Close RSVP Portal"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Directly embedded App Script Confirmation Link in an elegant responsive frame */}
-              <div className="flex-1 w-full bg-slate-50 relative">
-                {isIframeLoading && (
-                  <div className="absolute inset-0 bg-white flex flex-col items-center justify-center gap-3 z-20">
-                    <div className="w-8 h-8 border-3 border-pink-400 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-400 text-xs font-semibold tracking-wider uppercase animate-pulse">Launching RSVP Portal...</p>
-                  </div>
-                )}
-                <iframe
-                  src="https://script.google.com/macros/s/AKfycby1OLKgaKexZwzeN7SJzJWcycP1_yQoWM6LY9QeLuE6JHZVc9pLq_WUS5JbOeFMHVKz6A/exec"
-                  className="w-full h-full border-none"
-                  onLoad={() => setIsIframeLoading(false)}
-                  title="Wedding RSVP form"
-                  allow="autoplay; geolocation"
-                />
-              </div>
-
-            </div>
-          </div>
-        )}
-
-        {/* ==================================================================== */}
-        {/* HOST ADMIN ACCESS MODAL */}
-        {/* ==================================================================== */}
-        {isAdminModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setIsAdminModalOpen(false)} />
-            <div className="relative bg-white/95 backdrop-blur-xl w-full max-w-sm rounded-2xl p-6 border border-pink-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden z-50 animate-scaleUp">
-              <button 
-                onClick={() => setIsAdminModalOpen(false)} 
-                className="absolute top-4 right-4 p-1.5 hover:bg-pink-50 text-slate-400 hover:text-[#DE5B7B] rounded-full transition-colors"
-                title="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              
-              <div className="text-center mb-5 mt-2">
-                <div className="inline-flex p-2 bg-pink-50 text-[#DE5B7B] rounded-full mb-2">
-                  <Settings className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wide">Host Admin Portal</h3>
-                <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">
-                  Enter Wedding Date PIN to edit guest lists
-                </p>
-              </div>
-
-              <form onSubmit={handleAdminSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-left">
-                    Admin PIN (Wedding Date)
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="Enter 4-digit PIN (e.g. July 18 = 0718)"
-                    maxLength={4}
-                    value={adminPinInput}
-                    onChange={(e) => {
-                      setAdminPinInput(e.target.value.replace(/\D/g, ""));
-                      setAdminPinError("");
-                    }}
-                    className="w-full bg-slate-100 border border-slate-100 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 font-mono text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-pink-100 focus:border-[#DE5B7B] transition-all"
-                    autoFocus
-                  />
-                  {adminPinError && (
-                    <p className="text-[10px] text-red-500 font-bold mt-1 text-left flex items-center gap-1 animate-pulse">
-                      <AlertCircle className="w-3.5 h-3.5" /> {adminPinError}
-                    </p>
-                  )}
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-sans text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-102 active:scale-98 shadow-md"
-                  >
-                    Unlock Guest Controls
-                  </button>
-                </div>
-                
-                <p className="text-[10px] text-slate-400 text-center leading-relaxed font-semibold uppercase">
-                  Default PIN: <span className="font-bold text-pink-500">0718</span>
-                </p>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ==================================================================== */}
         {/* FOOTER BRIDAL BRANDING NOTES */}
         {/* ==================================================================== */}
         <footer className="w-full py-12 px-4 text-center mt-auto border-t border-dashed border-[#FFD1DB]/50">
@@ -1570,6 +1462,134 @@ export default function App() {
         </footer>
 
       </div>
+
+      {/* ==================================================================== */}
+      {/* INTERACTIVE RSVP DIALOG POPUP / MODAL PANEL (Moved to top-level sibling to fix transforms) */}
+      {/* ==================================================================== */}
+      {isRSVPModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6" id="rsvp-modal-overlay">
+          {/* Dark elegant blur overlay background */}
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+            onClick={handleCloseRSVP}
+          />
+
+          <div className="relative bg-white rounded-2xl shadow-2xl border-2 border-pink-400 max-w-lg w-full h-[540px] sm:h-[590px] max-h-[92vh] flex flex-col overflow-hidden z-50 animate-scaleUp">
+            
+            {/* Header panel */}
+            <div className="px-5 py-3 border-b border-pink-50 flex items-center justify-between shrink-0 bg-gradient-to-r from-pink-50/10 to-transparent">
+              
+              {/* Highly intuitive Back button */}
+              <button 
+                onClick={handleCloseRSVP}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] md:text-[11px] font-sans font-bold uppercase tracking-wider text-slate-600 hover:text-pink-600 bg-slate-100 hover:bg-pink-100/60 transition-all duration-200"
+                title="Back to website invitation"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to Invitation</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <Heart className="w-4 h-4 text-pink-500 fill-pink-500/10 animate-pulse" />
+                <span className="font-sans font-extrabold text-slate-700 text-[10px] tracking-widest uppercase hidden xs:inline">RSVP</span>
+              </div>
+              
+              {/* Header Close button */}
+              <button 
+                onClick={handleCloseRSVP}
+                className="p-1.5 bg-slate-50 hover:bg-pink-100/60 text-slate-400 hover:text-[#DE5B7B] rounded-full transition-colors flex items-center justify-center"
+                title="Close RSVP Portal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Directly embedded App Script Confirmation Link in an elegant responsive frame */}
+            <div className="flex-1 w-full bg-slate-50 relative">
+              {isIframeLoading && (
+                <div className="absolute inset-0 bg-white flex flex-col items-center justify-center gap-3 z-20">
+                  <div className="w-8 h-8 border-3 border-pink-400 border-t-transparent rounded-full animate-spin flex items-center justify-center"></div>
+                  <p className="text-slate-400 text-[11px] font-semibold tracking-wider uppercase animate-pulse">Launching RSVP Portal...</p>
+                </div>
+              )}
+              <iframe
+                src="https://script.google.com/macros/s/AKfycby1OLKgaKexZwzeN7SJzJWcycP1_yQoWM6LY9QeLuE6JHZVc9pLq_WUS5JbOeFMHVKz6A/exec"
+                className="w-full h-full border-none"
+                onLoad={() => setIsIframeLoading(false)}
+                title="Wedding RSVP form"
+                allow="autoplay; geolocation"
+              />
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* HOST ADMIN ACCESS MODAL */}
+      {/* ==================================================================== */}
+      {isAdminModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={() => setIsAdminModalOpen(false)} />
+          <div className="relative bg-white/95 backdrop-blur-xl w-full max-w-sm rounded-2xl p-6 border border-pink-100 shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden z-50 animate-scaleUp">
+            <button 
+              onClick={() => setIsAdminModalOpen(false)} 
+              className="absolute top-4 right-4 p-1.5 hover:bg-pink-50 text-slate-400 hover:text-[#DE5B7B] rounded-full transition-colors"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            
+            <div className="text-center mb-5 mt-2">
+              <div className="inline-flex p-2 bg-pink-50 text-[#DE5B7B] rounded-full mb-2">
+                <Settings className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-extrabold text-slate-800 uppercase tracking-wide">Host Admin Portal</h3>
+              <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-wider">
+                Enter Wedding Date PIN to edit guest lists
+              </p>
+            </div>
+
+            <form onSubmit={handleAdminSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-left">
+                  Admin PIN (Wedding Date)
+                </label>
+                <input
+                  type="password"
+                  placeholder="Enter 4-digit PIN (e.g. July 18 = 0718)"
+                  maxLength={4}
+                  value={adminPinInput}
+                  onChange={(e) => {
+                    setAdminPinInput(e.target.value.replace(/\D/g, ""));
+                    setAdminPinError("");
+                  }}
+                  className="w-full bg-slate-100 border border-slate-100 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 font-mono text-center font-bold text-lg focus:outline-none focus:ring-2 focus:ring-pink-100 focus:border-[#DE5B7B] transition-all"
+                  autoFocus
+                />
+                {adminPinError && (
+                  <p className="text-[10px] text-red-500 font-bold mt-1 text-left flex items-center gap-1 animate-pulse">
+                    <AlertCircle className="w-3.5 h-3.5" /> {adminPinError}
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl font-sans text-xs font-bold uppercase tracking-widest transition-all duration-300 hover:scale-102 active:scale-98 shadow-md"
+                >
+                  Unlock Guest Controls
+                </button>
+              </div>
+              
+              <p className="text-[10px] text-slate-400 text-center leading-relaxed font-semibold uppercase">
+                Default PIN: <span className="font-bold text-[#DE5B7B]">0718</span>
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
