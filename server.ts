@@ -346,22 +346,35 @@ app.get("/api/rsvps", async (req, res) => {
     const sheetGuests = await fetchGuestsFromGoogleSheet();
     const sheetAttending: any[] = [];
     
+    // Fetch from Firestore RSVPs as persistent backup
+    const firestoreRSVPs = await getFirestoreRSVPs();
+    
     sheetGuests.forEach(g => {
       const statusLower = g.rsvpStatus.toLowerCase().trim();
-      const isAttending = statusLower.includes("yes") || statusLower.includes("attending") || statusLower.includes("confirmed") || statusLower.includes("love");
+      const isAttending = statusLower !== "" && (
+        statusLower.includes("yes") || 
+        statusLower.includes("love") || 
+        statusLower.includes("attending") || 
+        statusLower.includes("confirmed") ||
+        statusLower.includes("accept") ||
+        statusLower.includes("coming")
+      );
+      
       if (isAttending) {
+        // Look up if they submitted a companion dynamically from Firestore as a backup
+        const existingDoc = firestoreRSVPs.find(f => matchNames(f.name, g.name));
+        const companionName = g.plusOneName || (existingDoc?.withPlusOne ? existingDoc.plusOneName : "") || "";
+        const hasCompanion = g.allowedPlusOne && !!companionName;
+
         sheetAttending.push({
-          name: g.name,
+          name: g.name, // Display exactly as listed in the Google Sheet
           attending: true,
-          withPlusOne: g.allowedPlusOne && !!g.plusOneName,
-          plusOneName: g.plusOneName || "",
-          submittedAt: new Date().toISOString()
+          withPlusOne: hasCompanion,
+          plusOneName: hasCompanion ? companionName : "",
+          submittedAt: existingDoc?.submittedAt || new Date().toISOString()
         });
       }
     });
-
-    // 2. Fetch from Firestore RSVPs as persistent backup
-    const firestoreRSVPs = await getFirestoreRSVPs();
 
     // Merge: Sheets is primary source, but include any newly added Firestore RSVPs
     const mergedList = [...sheetAttending];
