@@ -1347,63 +1347,76 @@ export default function App() {
               <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> CONFIRM ATTENDANCE
             </button>
 
-            {/* LIVE FEED: Guests who said YES to the invitation as requested */}
-            <div className="mt-12 w-full max-w-2xl bg-white/70 backdrop-blur-md rounded-2xl p-6 border border-white/80 text-left shadow-sm">
-              <div className="flex justify-between items-center mb-4 border-b border-pink-100/60 pb-3">
-                <span className="text-[11px] font-bold text-[#567BA2] uppercase tracking-[0.15em] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#DE5B7B]" /> ATTENDING GUESTS STREAM
-                </span>
-                <span className="px-3 py-1 bg-pink-100/60 text-[#DE5B7B] rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  {attendingGuests.reduce((acc, g) => acc + 1 + (g.withPlusOne && g.plusOneName ? 1 : 0), 0)} Confirmed
+
+
+          </div>
+        </section>
+
+        {/* ==================================================================== */}
+        {/* REFINED ATTENDING GUESTS LIST SECTION */}
+        {/* ==================================================================== */}
+        <section className="w-full max-w-4xl mx-auto px-4 py-6 mb-16 text-center" id="attending-guests-list-section">
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl p-8 md:p-10 border border-pink-100/60 shadow-lg text-center">
+            
+            <div className="inline-flex items-center justify-center p-2 bg-pink-50 text-[#DE5B7B] rounded-full mb-4">
+              <Sparkles className="w-5 h-5 animate-pulse" />
+            </div>
+            
+            <h2 className="text-3xl md:text-4xl font-script text-[#DE5B7B] mb-2 tracking-wide">
+              Attending Guests
+            </h2>
+            <p className="text-slate-500 font-sans font-bold text-[10px] tracking-[0.25em] uppercase mb-8">
+              Beloved Guests Confirmed to Attend
+            </p>
+
+            {isLoadingGuests ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2">
+                <div className="w-8 h-8 border-4 border-pink-100 border-t-pink-500 rounded-full animate-spin" />
+                <span className="text-[10px] font-sans font-bold text-slate-400 uppercase tracking-widest mt-2 animate-pulse">
+                  Gathering confirmed guests...
                 </span>
               </div>
-
-              {isLoadingGuests ? (
-                <p className="text-center text-xs text-slate-400 py-6 animate-pulse font-sans">Loading verified guests list...</p>
-              ) : attendingGuests.length === 0 ? (
-                <p className="text-center text-xs text-slate-400/90 py-8 font-sans">
-                  Be the first to say Yes and secure your seats!
+            ) : attendingGuests.length === 0 ? (
+              <div className="py-12 border border-dashed border-pink-100 rounded-2xl bg-pink-50/20 max-w-lg mx-auto">
+                <Heart className="w-5 h-5 text-pink-300 mx-auto mb-2" />
+                <p className="text-xs text-slate-400 font-sans uppercase tracking-widest font-semibold">
+                  No Attendees Confirmed Yet
                 </p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1 cs-scroll">
-                  {attendingGuests.map((guest, i) => (
-                    <div key={i} className="bg-white p-3.5 rounded-xl border border-pink-50 flex items-start justify-between shadow-sm gap-2 min-h-[58px]">
-                      <div className="flex-1 min-w-0">
-                        {/* Guest name */}
-                        <div className="flex items-center gap-2">
-                          <span className="relative flex h-2 w-2 shrink-0">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
-                          </span>
-                          <span className="text-xs font-bold text-slate-700 uppercase truncate" title={guest.name}>
-                            {guest.name}
+                <p className="text-[10px] text-slate-400 font-sans mt-1">
+                  We look forward to filling this page with your smiles.
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-3xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {attendingGuests.map((guest, idx) => (
+                    <div 
+                      key={idx} 
+                      className="bg-white/90 p-4 rounded-2xl border border-pink-50/50 hover:border-pink-200/60 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-center items-center gap-1.5"
+                    >
+                      <span className="text-[11px] font-extrabold text-[#567BA2] uppercase tracking-[0.1em] text-center leading-snug">
+                        {guest.name}
+                      </span>
+                      {guest.withPlusOne && guest.plusOneName && (
+                        <div className="flex items-center gap-1 text-[10px] text-[#DE5B7B] font-medium tracking-wide">
+                          <span className="text-slate-400 text-[9px]">&amp;</span>
+                          <span className="font-semibold uppercase tracking-wider text-center max-w-[150px] truncate" title={guest.plusOneName}>
+                            {guest.plusOneName}
                           </span>
                         </div>
-                        
-                        {/* Companion name */}
-                        {guest.withPlusOne && guest.plusOneName && (
-                          <div className="mt-2 pl-4 flex items-center gap-1.5 text-slate-500 min-w-0">
-                            <Heart className="w-3 h-3 text-pink-400 shrink-0 fill-pink-400/10" />
-                            <span className="text-[11px] font-semibold uppercase tracking-wider truncate text-slate-600" title={`Companion: ${guest.plusOneName}`}>
-                              {guest.plusOneName}
-                            </span>
-                            <span className="text-[7px] text-pink-500 bg-pink-50 border border-pink-100/50 px-1.5 py-0.5 rounded shrink-0 font-extrabold tracking-widest uppercase">
-                              Companion
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      
-
+                      )}
                     </div>
                   ))}
                 </div>
-              )}
-
-
-
-            </div>
-
+                
+                <div className="mt-8 pt-6 border-t border-dashed border-pink-100/50 flex flex-col sm:flex-row justify-center items-center gap-4 text-xs font-sans text-slate-400 font-semibold uppercase tracking-wider">
+                  <span className="flex items-center gap-1.5 bg-[#FFF5F7] px-4 py-2 rounded-full border border-pink-100/30">
+                    <Heart className="w-3.5 h-3.5 text-[#DE5B7B] fill-[#DE5B7B]/10" />
+                    <span>Total Attending: {attendingGuests.reduce((acc, g) => acc + 1 + (g.withPlusOne && g.plusOneName ? 1 : 0), 0)}</span>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
