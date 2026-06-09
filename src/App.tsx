@@ -1353,7 +1353,7 @@ export default function App() {
         </section>
 
         {/* ==================================================================== */}
-        {/* FOOTER BRIDAL BRANDING NOTES */}
+        {/* FOOTER BRIDAL BRANDING NOTES & CREATOR CREDIT */}
         {/* ==================================================================== */}
         <footer className="w-full py-12 px-4 text-center mt-auto border-t border-dashed border-[#FFD1DB]/50">
           <div className="max-w-md mx-auto">
@@ -1363,10 +1363,49 @@ export default function App() {
             <p className="font-sans text-[10px] text-slate-400 capitalize tracking-widest font-semibold mb-2">
               Garden Chic Elegant Celebrations • July 18, 2026
             </p>
-            <div className="flex justify-center items-center gap-2 text-[9px] text-[#567BA2] bg-white/70 backdrop-blur-md border border-white/80 py-1.5 px-3 rounded-full shadow-sm max-w-xs mx-auto">
+            <div className="flex justify-center items-center gap-2 text-[9px] text-[#567BA2] bg-white/70 backdrop-blur-md border border-white/80 py-1.5 px-3 rounded-full shadow-sm max-w-xs mx-auto mb-8">
               <span>Cathedral Church Liturgy</span>
               <span className="w-1 h-1 bg-pink-400 rounded-full"></span>
               <span>Off-White Prohibited</span>
+            </div>
+
+            {/* Elegant Creator Credit Badge */}
+            <div className="pt-6 border-t border-pink-100/40 max-w-xs mx-auto flex flex-col items-center justify-center gap-2" id="creator-credits-badge">
+              <span className="font-sans text-[8px] text-slate-400 uppercase tracking-[0.2em] font-bold">
+                Digital Invitation Crafted By
+              </span>
+              <a 
+                href="https://www.facebook.com/RielWorksPrinting/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="group flex flex-col items-center gap-1.5 hover:scale-105 active:scale-95 transition-all duration-300"
+                id="creator-credit-link"
+              >
+                <div className="w-12 h-12 rounded-full border border-pink-100/60 bg-white p-1 flex items-center justify-center overflow-hidden shadow-sm group-hover:border-pink-300 group-hover:shadow-md transition-all duration-300">
+                  <img 
+                    src="https://i.imgur.com/FMCZmM3.png" 
+                    alt="RielWorks Printing Logo" 
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-contain rounded-full"
+                    onError={(e) => {
+                      // fallback to text only if direct imgur image fails
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+                <span className="font-sans text-[10px] font-extrabold text-[#567BA2] group-hover:text-[#DE5B7B] tracking-wider uppercase transition-colors">
+                  RielWorks Printing
+                </span>
+              </a>
+              <a 
+                href="https://www.facebook.com/RielWorksPrinting/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[9px] text-[#567BA2] hover:text-[#DE5B7B] font-bold uppercase tracking-wider hover:underline transition-all mt-1"
+                id="message-us-pitch"
+              >
+                Inquire here for your own custom digital invitation
+              </a>
             </div>
           </div>
         </footer>

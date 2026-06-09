@@ -42,7 +42,7 @@ export const WEDDING_DETAILS = {
 
   sponsors: [
     { lady: "JUDGE. MAUREEN CHUA", gentleman: "HON. EARL CHUA" },
-    { lady: "DOC. GRACE ADELLETTE CASINO", gentleman: "ENGR. HARRY RUSSEL COTANDA" },
+    { lady: "DR. GRACE ADELETTE CASINO", gentleman: "ENGR. HARRY RUSSEL COTANDA" },
     { lady: "MERLIN ELUDO", gentleman: "HON. ALEXIS BORJA TUGAY" },
     { lady: "JULIET LONGOS", gentleman: "HON. MARC ADELSON LONGOS" },
     { lady: "ESMERALDA SENDIONG", gentleman: "REYNALDO SENDIONG" },
@@ -69,7 +69,7 @@ export const WEDDING_DETAILS = {
     { lady: "YOLLIE LEROG", gentleman: "JAMES LEROG" },
     { lady: "JERILYN LIGAD", gentleman: "JESIE LIGAD" },
     { lady: "LINA NITA PETALLO", gentleman: "RITO PETALLO" },
-    { lady: "LEIZIL FITZPATRIC", gentleman: "JOSE TUGAY" },
+    { lady: "LIEZL FITZPATRICK", gentleman: "JOSE TUGAY" },
     { lady: "JENILYN TUGAY", gentleman: "PROCEN TUGAY" },
     { lady: "JEAN MENIL", gentleman: "DENNIS BAKER" },
     { lady: "GLENDA LAEDA MENIL", gentleman: "JEREMY BAKER" },
