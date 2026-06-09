@@ -14,7 +14,6 @@ export const WEDDING_DETAILS = {
   dateText: "Saturday, July 18, 2026",
   timeText: "3:00 PM START",
   locationText: "CATHEDRAL CHURCH",
-  receptionText: "Reception: Tavern Hotel, Emerald hall",
   countdownDate: "2026-07-18T15:00:00", // Full date time for countdown target
   
   palette: {
