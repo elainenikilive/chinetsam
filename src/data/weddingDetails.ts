@@ -14,6 +14,7 @@ export const WEDDING_DETAILS = {
   dateText: "Saturday, July 18, 2026",
   timeText: "3:00 PM START",
   locationText: "CATHEDRAL CHURCH",
+  receptionText: "TAVERN HOTEL, EMERALD HALL",
   countdownDate: "2026-07-18T15:00:00", // Full date time for countdown target
   
   palette: {
@@ -42,7 +43,7 @@ export const WEDDING_DETAILS = {
 
   sponsors: [
     { lady: "JUDGE. MAUREEN CHUA", gentleman: "HON. EARL CHUA" },
-    { lady: "DR. GRACE ADELETTE CASIÑO", gentleman: "ENGR. HARRY RUSSEL COTANDA" },
+    { lady: "DR. GRACE ADELETTE CASINO", gentleman: "ENGR. HARRY RUSSEL COTANDA" },
     { lady: "MERLIN ELUDO", gentleman: "HON. ALEXIS BORJA TUGAY" },
     { lady: "JULIET LONGOS", gentleman: "HON. MARC ADELSON LONGOS" },
     { lady: "ESMERALDA SENDIONG", gentleman: "REYNALDO SENDIONG" },

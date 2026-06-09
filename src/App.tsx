@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   Trash2,
   Settings,
-  ArrowLeft
+  ArrowLeft,
+  Utensils
 } from "lucide-react";
 import { WEDDING_DETAILS } from "./data/weddingDetails";
 import { RSVPData, GuestCheckResponse } from "./types";
@@ -800,36 +801,46 @@ export default function App() {
             <span className="w-16 h-0.5 bg-gradient-to-r from-pink-200 via-pink-400 to-blue-200 rounded-full my-6"></span>
 
             {/* Crucial Info Band: Date, Start, Location in DM Sans */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl text-slate-800 text-sm font-sans divide-y md:divide-y-0 md:divide-x divide-[#FFD1DB]/50">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-4xl text-slate-800 text-sm font-sans divide-y md:divide-y-0 md:divide-x divide-[#FFD1DB]/50">
               
               <div className="flex flex-col items-center pt-4 md:pt-0">
                 <div className="bg-[#FFF1F4] p-3 rounded-full mb-2">
                   <Calendar className="w-5 h-5 text-pink-500" />
                 </div>
-                <span className="font-bold text-[#DE5B7B] uppercase tracking-wide">
+                <span className="font-bold text-[#DE5B7B] uppercase tracking-wide text-center">
                   {WEDDING_DETAILS.dateText}
                 </span>
                 <span className="text-[11px] text-slate-400 font-medium">Saturday Afternoon</span>
               </div>
               
-              <div className="flex flex-col items-center pt-4 md:pt-0">
+              <div className="flex flex-col items-center pt-4 md:pt-0 pl-1">
                 <div className="bg-[#E7F2FC] p-3 rounded-full mb-2">
                   <Clock className="w-5 h-5 text-blue-500" />
                 </div>
-                <span className="font-bold text-[#567BA2] uppercase tracking-wide">
+                <span className="font-bold text-[#567BA2] uppercase tracking-wide text-center">
                   {WEDDING_DETAILS.timeText}
                 </span>
                 <span className="text-[11px] text-slate-400 font-medium font-mono">UTC +8 Standard</span>
               </div>
               
-              <div className="flex flex-col items-center pt-4 md:pt-0">
+              <div className="flex flex-col items-center pt-4 md:pt-0 pl-1">
                 <div className="bg-[#FFF1F4] p-3 rounded-full mb-2">
                   <MapPin className="w-5 h-5 text-pink-500" />
                 </div>
-                <span className="font-bold text-[#DE5B7B] uppercase tracking-wide">
+                <span className="font-bold text-[#DE5B7B] uppercase tracking-wide text-center">
                   {WEDDING_DETAILS.locationText}
                 </span>
                 <span className="text-[11px] text-slate-400 font-medium">Blessing Liturgical Rite</span>
+              </div>
+
+              <div className="flex flex-col items-center pt-4 md:pt-0 pl-1">
+                <div className="bg-[#E7F2FC] p-3 rounded-full mb-2">
+                  <Utensils className="w-5 h-5 text-blue-500" />
+                </div>
+                <span className="font-bold text-[#567BA2] uppercase tracking-wide text-center">
+                  {WEDDING_DETAILS.receptionText}
+                </span>
+                <span className="text-[11px] text-slate-400 font-medium">Wedding Reception</span>
               </div>
 
             </div>
