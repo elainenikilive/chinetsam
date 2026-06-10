@@ -43,7 +43,7 @@ export const WEDDING_DETAILS = {
 
   sponsors: [
     { lady: "JUDGE. MAUREEN CHUA", gentleman: "HON. EARL CHUA" },
-    { lady: "DR. GRACE ADELETTE CASIÑO", gentleman: "ENGR. HARRY RUSSEL COTANDA" },
+    { lady: "DR. GRACE ADELETTE CASINO", gentleman: "ENGR. HARRY RUSSEL COTANDA" },
     { lady: "MERLIN ELUDO", gentleman: "HON. ALEXIS BORJA TUGAY" },
     { lady: "JULIET LONGOS", gentleman: "HON. MARC ADELSON LONGOS" },
     { lady: "ESMERALDA SENDIONG", gentleman: "REYNALDO SENDIONG" },
@@ -53,7 +53,7 @@ export const WEDDING_DETAILS = {
     { lady: "CORAZON PACO", gentleman: "HON. EDITO PACO" },
     { lady: "ANASTACIA YISMONTE", gentleman: "HON. JAY LONGOS" },
     { lady: "SHARON TRESIANA", gentleman: "HON. JONATHAN TRESIANA" },
-    { lady: "HON. LANIE JAPAY", gentleman: "RANDEL JAPAY" },
+    { lady: "HON. LAILANIE JAPAY", gentleman: "RANDEL JAPAY" },
     { lady: "CHARISMA LONGOS", gentleman: "MICHAEL LONGOS" },
     { lady: "CHERRYFEL MALATA", gentleman: "JULIUS MALATA" },
     { lady: "ALVIE VELEZ", gentleman: "ALLAN VELEZ" },
@@ -83,7 +83,9 @@ export const WEDDING_DETAILS = {
     { lady: "AMELIA FLORES", gentleman: "ESLIE FLORES" },
     { lady: "LEIZEL VIRTUDAZO", gentleman: "LEO MORA" },
     { lady: "LEAH MANASAN", gentleman: "FRATERNO CATURLA" },
-    { lady: "MERCY BAGUINAON", gentleman: "DOMINGO CONJURADO" }
+    { lady: "MERCY BAGUINAON", gentleman: "DOMINGO CONJURADO" },
+    { lady: "MARITES TUGAY", gentleman: "RINO TUGAY" },
+    { lady: "SUFENIA CHUA", gentleman: "PETER PAUL EVARDONE" }
   ] as SponsorPair[],
 
   bridesmaidsGroomsmen: [
