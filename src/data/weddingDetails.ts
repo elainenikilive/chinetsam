@@ -57,7 +57,7 @@ export const WEDDING_DETAILS = {
     { lady: "CHARISMA LONGOS", gentleman: "MICHAEL LONGOS" },
     { lady: "CHERRYFEL MALATA", gentleman: "JULIUS MALATA" },
     { lady: "ALVIE VELEZ", gentleman: "ALLAN VELEZ" },
-    { lady: "LUSMAR ESCUYOS", gentleman: "WENDIL PEDRERA" },
+    { lady: "LUZMAR ESCUYOS", gentleman: "WENDELL PEDRERA" },
     { lady: "MA. GLENDA GUMA", gentleman: "PEDRO GUMA" },
     { lady: "CARIDAD BAYNOSA", gentleman: "RAMIL BAYNOSA" },
     { lady: "ANNALISSA PEGORO", gentleman: "JOVITO PEGORO" },
@@ -82,7 +82,7 @@ export const WEDDING_DETAILS = {
     { lady: "DAISY GILLO", gentleman: "HENRITO CONSIGNA" },
     { lady: "AMELIA FLORES", gentleman: "ESLIE FLORES" },
     { lady: "LEIZEL VIRTUDAZO", gentleman: "LEO MORA" },
-    { lady: "LEAH MANASAN", gentleman: "FRATERNO CATURLA" },
+    { lady: "LEA MANASAN", gentleman: "FRATERNO CATURLA" },
     { lady: "MERCY BAGUINAON", gentleman: "DOMINGO CONJURADO" },
     { lady: "MARITES TUGAY", gentleman: "RINO TUGAY" },
     { lady: "SUFENIA CHUA", gentleman: "PETER PAUL EVARDONE" }
