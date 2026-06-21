@@ -51,7 +51,7 @@ export const WEDDING_DETAILS = {
     { lady: "NECITAS ALDONZA MALACURA", gentleman: "ENGR. EMANNUEL SUNGA" },
     { lady: "MILDRED MACHECA", gentleman: "PEMS CHARLOU MACHECA" },
     { lady: "CORAZON PACO", gentleman: "HON. EDITO PACO" },
-    { lady: "ANASTACIA YISMONTE", gentleman: "HON. JAY LONGOS" },
+    { lady: "ANASTACIA VISMONTE", gentleman: "HON. JAY LONGOS" },
     { lady: "SHARON TRESIANA", gentleman: "HON. JONATHAN TRESIANA" },
     { lady: "HON. LAILANIE JAPAY", gentleman: "RANDEL JAPAY" },
     { lady: "CHARISMA LONGOS", gentleman: "MICHAEL LONGOS" },
@@ -75,7 +75,7 @@ export const WEDDING_DETAILS = {
     { lady: "JEAN MENIL", gentleman: "DENNIS BAKER" },
     { lady: "GLENDA LAEDA MENIL", gentleman: "JEREMY BAKER" },
     { lady: "CRISTY MABINI", gentleman: "ROLDAN CAGMAT" },
-    { lady: "JINKY CAGMAT", gentleman: "MAYNARD CAGMAT" },
+    { lady: "JINKY CAGMAT", gentleman: "ENGR. MAYNARD CAGMAT" },
     { lady: "MARGIE GUILLEMER", gentleman: "EMELITO CONSIGNA" },
     { lady: "CECILE DUMAGAN", gentleman: "NILO LINAGA" },
     { lady: "MARY ANN NACUSPAG", gentleman: "JOSE NACUSPAG SR." },
@@ -85,7 +85,8 @@ export const WEDDING_DETAILS = {
     { lady: "LEA MANASAN", gentleman: "FRATERNO CATURLA" },
     { lady: "MERCY BAGUINAON", gentleman: "DOMINGO CONJURADO" },
     { lady: "MARITES TUGAY", gentleman: "RINO TUGAY" },
-    { lady: "SUFENIA CHUA", gentleman: "PETER PAUL EVARDONE" }
+    { lady: "SUFENIA CHUA", gentleman: "PETER PAUL EVARDONE" },
+    { lady: "MARY GLENN PORAS", gentleman: "JIOSEBIR P PORAS" }
   ] as SponsorPair[],
 
   bridesmaidsGroomsmen: [
@@ -106,7 +107,7 @@ export const WEDDING_DETAILS = {
     { brideSide: "ABIGAIL ALNAE BORJA", groomSide: "DANN JAYLORD TUGAY" },
     { brideSide: "MARRIETONIE CASAS", groomSide: "RICH JOHN CASAS" },
     { brideSide: "JUDYBELLE GUILLEMER", groomSide: "MARC ANTHONY GUILLEMER" },
-    { brideSide: "ELAINE DALAPO", groomSide: "JEROME MORGA" }
+    { brideSide: "ELAINE DALAPO", groomSide: "JEROME MORGA" },
   ] as EntouragePair[],
 
   specialSponsors: {
